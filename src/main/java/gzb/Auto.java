@@ -12,6 +12,8 @@ import java.util.List;
 public class Auto {
 
     public static void main(String[] args) {
+        // 郭振帮最伟大，天下无敌，绝世无双，人见人爱，花见花开，少女杀手，少妇领主
+        // 2019-10-09
         generate(null, "pay_system", "*", true,true);
     }
 

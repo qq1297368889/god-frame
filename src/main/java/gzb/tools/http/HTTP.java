@@ -22,17 +22,11 @@ public class HTTP {
 
     public static void main(String[] args) throws Exception {
         HTTP http = new HTTP();
-        ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
-        ScriptEngine engine = scriptEngineManager.getEngineByName("JavaScript");
-        List<String> list = Arrays.asList("element1", "element2", "element3");
-        engine.put("http", http);
-        String script = "print('the size of javaList is ' + javaList.size());\n" +
-                "print('javaList elements:');" +
-                "for (i in javaList) {\n" +
-                "print(javaList[i]);\n" +
-                "}";
-        engine.eval(script);
-        System.out.println("===============================================");
+        http.chromeHeaders();
+
+        Log.i(http.httpGetString("https://jscdn4.easyland.club/GC7928NHU/hls/index.m3u8?sign=a056abadbd0b034f48d20b35b48d0618&t=1665319114"));
+
+
 
     }
     public HTTP() {
@@ -56,10 +50,11 @@ public class HTTP {
 
     //设置为 谷歌的协议头 ua
     public void chromeHeaders(){
+        if (headers==null)
         headers=new HashMap<>();
-        headers.put("accept","application/json, text/javascript, */*; q=0.01");
-        headers.put("user-agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36");
-        headers.put("x-requested-with","XMLHttpRequest");
+        headers.put("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.30 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.30");
+        headers.put("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
+        headers.put("Connection","keep-alive");
     }
     //cookie 序列化成字符串
     public String cookieToString() {
@@ -126,9 +121,7 @@ public class HTTP {
             } else {
                 conn.connect();
             }
-            InputStream inputStream = conn.getInputStream();
-            this.bytes = new byte[inputStream.available()];
-            inputStream.read(this.bytes);
+            this.bytes = Tools.readStream(conn.getInputStream());
             String key = null;
             for (int i = 1; (key = conn.getHeaderFieldKey(i)) != null; i++) {
                 if (key.equalsIgnoreCase("set-cookie")) {
@@ -138,8 +131,9 @@ public class HTTP {
             return this;
         } catch (Exception e) {
             Log.i("http访问出现异常：" + url + "  " + data);
+            e.printStackTrace();
+            return this;
         }
-        return null;
     }
 
     public HTTP httpGet(String url) {

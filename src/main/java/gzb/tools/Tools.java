@@ -1,6 +1,8 @@
 package gzb.tools;
 
 import gzb.tools.config.StaticClasses;
+import gzb.tools.http.HTTP;
+import gzb.tools.http.HttpRequest;
 import gzb.tools.log.LogImpl;
 import gzb.tools.entity.UploadEntity;
 import org.springframework.boot.system.ApplicationHome;
@@ -27,9 +29,40 @@ public class Tools {
     public static String ProjectPath = null;
     public static String[] ss1 = "QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789".split("|");
 
-    public static void main(String[] args) {
-        String str="12345";
-        Log.i(str.substring(str.length()-1,str.length()));
+    public static void main(String[] args) throws Exception {
+        m3u8ToMp4("https://jscdn4.easyland.club/GC7905BTH/hls/index.m3u8?sign=4355134565fc0de9d554c91bd204a29c&t=1665312588", "E:/20221003", "1.mp4",1000,2024);
+    }
+
+    public static byte[] readStream(InputStream inStream) throws Exception{
+        ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int len = -1;
+        while((len=inStream.read(buffer))!=-1){
+            outStream.write(buffer,0,len);
+        }
+        outStream.close();
+        inStream.close();
+        return outStream.toByteArray();
+    }
+    public static final File m3u8ToMp4(String m3u8Url, String filePath, String fileName, int intervalMin, int intervalMax) throws Exception {
+        File file = new File(filePath.replaceAll("\\\\", "/") + "/" + fileName);
+        String str1 = new HttpRequest().httpGet(m3u8Url).toString();
+        String pwdUrl = textMid(str1, "#EXT-X-KEY:METHOD=AES-128,URI=\"", "\"", 1);
+        String pwd = new HttpRequest().httpGet(pwdUrl).toString();
+        List<String> list = textMid(str1, ",\n", "\n#");
+        for (int i = 0; i < list.size(); i++) {
+            String subUrl = list.get(i);
+            Log.i("[" + (i + 1) + "/" + list.size() + "]:" + subUrl);
+            fileSaveByte(file, AES128.aesDe(new HttpRequest().httpGet(subUrl).toByte(), pwd, null), true);
+            if (intervalMin > 0 && intervalMax > 0) {
+                Thread.sleep(getRandomInt(intervalMax, intervalMin));
+            }
+        }
+        Log.i(file.getParent() + "/" + file.getName());
+        return file;
+    }
+    public static final File m3u8ToMp4(String m3u8Url, String filePath, String fileName) throws Exception{
+        return m3u8ToMp4(m3u8Url, filePath, fileName,0,0);
     }
     public static final ArrayList toArrayList() {
         return new ArrayList() {
@@ -44,6 +77,7 @@ public class Tools {
             }
         };
     }
+
 
     public static final Object[] toArray(Object... objs) {
         return objs;

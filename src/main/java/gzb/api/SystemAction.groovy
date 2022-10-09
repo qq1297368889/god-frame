@@ -19,7 +19,7 @@ import javax.servlet.http.HttpServletResponse
 import java.text.SimpleDateFormat
 
 class SystemAction {
-    //static String webPath = "system"
+    static String webPath = "system"
     static BaseDao dao = new BaseDaoImpl();
     static Log log = new LogImpl(SystemAction.class);
 
@@ -27,12 +27,6 @@ class SystemAction {
     HttpServletResponse response;
     Session session;
     DateTime dateTime = new DateTime();
-    //system/imageCode
-    //system/register?acc=123456&pwd=123456&mailbox=123@qq.com&phone=12345678954&code=
-    //system/login?acc=123456&pwd=123456&code=
-    //system/readUserInfo
-    //system/readFile?id=
-    //uploadFile
 
 
     public Object imageCode() {
