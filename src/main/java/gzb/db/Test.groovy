@@ -16,16 +16,13 @@ import java.sql.PreparedStatement
 import java.sql.ResultSet
 
 class Test {
-    static BaseDao dao = new BaseDaoImpl();
     static Log log = new LogImpl(Test.class)
 
     static void main(String[] args) {
         test()
     }
-
     static def test() {
-        DateTime dateTime = new DateTime();
-        log.i("--------------------------"+gzb.db.pay_system.DataBase.db.getOnlyIdNumber("test","test_id"))
+
         /*       for (int n = 0; n < 10; n++) {
                    ThreadPool.start(new GzbThread() {
                        @Override
