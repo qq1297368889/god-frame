@@ -39,7 +39,6 @@ public class Controller extends HttpServlet {
 
     private void CPU(HttpServletRequest request, HttpServletResponse response,int types) {
         try {
-            log.i(request.getRequestURI());
             String[] arr1 = request.getRequestURI()
                     .split("/");
             if (arr1.length<2){
@@ -59,8 +58,7 @@ public class Controller extends HttpServlet {
             while(className.indexOf("//")>-1){
                 className=className.replaceAll("//","/");
             }
-            log.i(className);
-            log.i(funName);
+
             response.setHeader("Content-Type", "application/json;charset=UTF-8");
             GroovyReturnEntity groovyReturnEntity = GroovyLoadV2.newObject(className);
             if (groovyReturnEntity == null) {

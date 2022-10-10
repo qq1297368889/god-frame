@@ -8,32 +8,27 @@ import javax.script.ScriptEngineManager;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class HTTP {
-
+static{
+    try {
+        //SslUtils.ignoreSsl();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
     static gzb.tools.log.Log Log=new LogImpl(HTTP.class);
     Map<String, String> cookies = new HashMap<>();
     Map<String, String> headers = new HashMap<>();
     byte[] bytes;
 
-    public static void main(String[] args) throws Exception {
-        HTTP http = new HTTP();
-        http.chromeHeaders();
-
-        Log.i(http.httpGetString("https://jscdn4.easyland.club/GC7928NHU/hls/index.m3u8?sign=a056abadbd0b034f48d20b35b48d0618&t=1665319114"));
-
-
-
-    }
     public HTTP() {
         chromeHeaders();
     }
 
     public HTTP(Map<String, String> cookies, Map<String, String> headers) {
+        chromeHeaders();
         this.cookies = cookies;
         this.headers = headers;
     }
@@ -49,22 +44,23 @@ public class HTTP {
 
 
     //设置为 谷歌的协议头 ua
-    public void chromeHeaders(){
-        if (headers==null)
-        headers=new HashMap<>();
+    private void chromeHeaders(){
+        if (headers==null){
+            headers=new HashMap<>();
+        }
         headers.put("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.30 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.30");
         headers.put("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
         headers.put("Connection","keep-alive");
     }
     //cookie 序列化成字符串
     public String cookieToString() {
-        String all = "";
+        StringBuilder sb=new StringBuilder();
         if (cookies != null) {
             for (Map.Entry<String, String> entry : cookies.entrySet()) {
-                all += entry.getKey() + "=" + entry.getValue() + "; ";
+                sb.append(entry.getKey()).append("=").append(entry.getValue()).append("; ");
             }
         }
-        return all;
+        return sb.toString();
     }
 
     //添加cookie 字符串 支持多个
@@ -95,9 +91,11 @@ public class HTTP {
      * 参数3 访问方式 1 post ,11 post byte, 0get
      */
     public HTTP request(String url, String data, int met) {
+        URLConnection conn;
         try {
-            SslUtils.ignoreSsl();
-            URLConnection conn = new URL(url).openConnection();
+              conn = new URL(url).openConnection();
+            conn.setConnectTimeout(10000);
+
             if (headers != null) {
                 for (Map.Entry<String, String> entry : headers.entrySet()) {
                     conn.addRequestProperty(entry.getKey(), entry.getValue());
@@ -121,7 +119,8 @@ public class HTTP {
             } else {
                 conn.connect();
             }
-            this.bytes = Tools.readStream(conn.getInputStream());
+            this.bytes = conn.getInputStream().readAllBytes();
+            conn.getInputStream().close();
             String key = null;
             for (int i = 1; (key = conn.getHeaderFieldKey(i)) != null; i++) {
                 if (key.equalsIgnoreCase("set-cookie")) {

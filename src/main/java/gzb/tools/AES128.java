@@ -22,7 +22,8 @@ public class AES128 {
             byte[] initParam = iv == null ? iv_def : iv.getBytes();
             IvParameterSpec ivSpec = new IvParameterSpec(initParam);
             // 指定加密的算法、工作模式和填充方式
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            //Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
             cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
             return cipher.doFinal(contentByte);
         } catch (Exception e) {
@@ -39,13 +40,53 @@ public class AES128 {
             byte[] initParam = iv == null ? iv_def : iv.getBytes();
             IvParameterSpec ivSpec = new IvParameterSpec(initParam);
             // 指定加密的算法、工作模式和填充方式
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            //Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
             cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
             return cipher.doFinal(contentByte);
         } catch (Exception e) {
             return null;
         }
 
+    }
+    public static final byte[] aesECBEn(byte[] contentByte, String key) {
+        try {
+            byte[] keyByte = key.getBytes();
+            //初始化一个密钥对象
+            SecretKeySpec keySpec = new SecretKeySpec(keyByte, AES);
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec);
+            return cipher.doFinal(contentByte);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static final byte[] aesECBDe(byte[] contentByte, String key) {
+        try {
+            byte[] keyByte = key.getBytes();
+            //初始化一个密钥对象
+            SecretKeySpec keySpec = new SecretKeySpec(keyByte, AES);
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            cipher.init(Cipher.DECRYPT_MODE, keySpec);
+            return cipher.doFinal(contentByte);
+        } catch (Exception e) {
+            return null;
+        }
+
+    }
+
+    public static final String aesECBEn(String content, String pwd) {
+        byte[] b0=content.getBytes(StandardCharsets.UTF_8);
+        byte[] b1 = aesECBEn(b0, pwd);
+        System.out.println(b0);
+        System.out.println(b1);
+        return Tools.textBase64Encoder(b1);
+    }
+    public static final String aesECBDe(String content, String pwd) {
+        byte[] b0=Tools.textBase64DecoderByte(content);
+        byte[] b1 = aesECBDe(b0, pwd);
+        return new String(b1,StandardCharsets.UTF_8);
     }
 
     public static final String aesEn(String content, String pwd, String iv) {

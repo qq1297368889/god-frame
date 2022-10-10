@@ -1,5 +1,4 @@
 package gzb.tools;
-
 import gzb.tools.config.StaticClasses;
 import gzb.tools.http.HTTP;
 import gzb.tools.http.HttpRequest;
@@ -29,10 +28,33 @@ public class Tools {
     public static String ProjectPath = null;
     public static String[] ss1 = "QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789".split("|");
 
-    public static void main(String[] args) throws Exception {
-        m3u8ToMp4("https://jscdn4.easyland.club/GC7905BTH/hls/index.m3u8?sign=4355134565fc0de9d554c91bd204a29c&t=1665312588", "E:/20221003", "1.mp4",1000,2024);
-    }
 
+    public static void main(String[] args) throws Exception {
+        //0123456789abcdef
+        //46cc793c53dc451b
+        //m3u8ToMp4("https://jscdn4.easyland.club/GC7905BTH/hls/index.m3u8?sign=4355134565fc0de9d554c91bd204a29c&t=1665312588", "E:/20221003", "1.mp4",1000,2024);
+String miwen= "AeAqHGQAAi+zVFCQBeQCnsrzLjmSs+braEbikxMw0uzzdG9yv7LaP5lHAhDVi49Z8iBeadPzG3KVOspHAOSMSy7BtWXigotjyDL0l2/8ZdPjmmsSkYan9LIaNTgcBE8qgSGRZVoS68OZdQFKsYWQD9XbZcIXCN1cHi3KeJtAzXY2T7LpY5+lvvxjUw4qT88jaWuX6zOSeNIjUBEZFKnfF8paAuROdDziSOySUHBvN7jGxr+FjVaYxHsruRma0I8yfOifjBr8+0prWiCcIU8NBsRv9+m6r7EZbjI9XimugYOf6PG/sQWQ8In5f7CIZq/NHXmbdoRZmeDWH7sIhhCvfpMkl/65EBwO2RM13GLDArxAQHPYW5Bdyeg/vOlnSyonDMVM9+cvm/Atlgvl6sfC9PsPTq6SBX/jwBTVOxmzI6aUCBX/gV25KB/AccZxGlNkCSznU7T9BdAiA4PrhQEY//klVMQrVaNoww/fnBQMx5ZFcKBu+tEEiLLJHCFslyALhaSuNm+T9wYL4z3QLTN9bswzVxE9/cKGpDdBifG1B3Ed6XjljPb7xEYiauWYGkiOQ4JraDBt0byAd/1gHPmevYf0nBhRGsZyIhbomf7zTtVz9+QV4FJN6aVUSQkxb6yu";
+
+        System.out.println("解密："+AES128.aesECBDe(miwen,"46cc793c53dc451b"));
+        HTTP http=new HTTP();
+
+        http.addCookies("content-type","application/json;charset=UTF-8");
+        http.addCookies("timestamp",new DateTime().toStampInt()+"");
+        http.addCookies("timestr",getSing());
+        http.addCookies("token","");
+        http.addCookies("accept","application/json, text/plain, */*");
+        http.httpPostByte("https://www.kmqsaq.com/video/getList","{\"clientType\":1,\"length\":8,\"page\":1,\"type\":1,\"orderType\":10002,\"orderText\":[{\"dir\":\"desc\",\"column\":\"seeCount\"}]}");
+
+        Log.i(http.toString());
+
+
+    }
+public static final  String getSing(){
+        //928b0de8-8dfc-820f-c635-49be28d5fdae
+    return getRandomString(4) + getRandomString(4) + "-" +getRandomString(4) + "-" + getRandomString(4)+ "-" +getRandomString(4) + "-" +
+            getRandomString(4) +getRandomString(4) + getRandomString(4);
+
+}
     public static byte[] readStream(InputStream inStream) throws Exception{
         ByteArrayOutputStream outStream = new ByteArrayOutputStream();
         byte[] buffer = new byte[1024];
@@ -297,7 +319,7 @@ public class Tools {
                 .replaceAll("\r", "\\\\r")
                 .replaceAll("\n", "\\\\n")
                 .replaceAll("\t", "\\\\t");
-        Log.i(json);
+        //Log.i(json);
         return json;
     }
 
