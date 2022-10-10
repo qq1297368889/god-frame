@@ -170,6 +170,19 @@ public class GzbCache {
         list.add(this.gzbCacheNewTime);
         return new AutoSqlEntity(sb.toString(),list.toArray());
     }
+    public String toInsert2(){
+        return new StringBuilder().append("insert into "+DataBase.gzbCacheName+"(gzb_cache_id,gzb_cache_key,gzb_cache_val,gzb_cache_end_time,gzb_cache_new_time) values('")
+                .append(this.gzbCacheId==null?"":this.gzbCacheId)
+                .append("','")
+                .append(this.gzbCacheKey==null?"":this.gzbCacheKey)
+                .append("','")
+                .append(this.gzbCacheVal==null?"":this.gzbCacheVal)
+                .append("','")
+                .append(this.gzbCacheEndTime==null?"":this.gzbCacheEndTime)
+                .append("','")
+                .append(this.gzbCacheNewTime==null?"":this.gzbCacheNewTime)
+                .append("')").toString();
+    }
     public GzbCache find(BaseDao dao) {
         return dao.gzbCacheFind(this);
     }

@@ -1,7 +1,10 @@
 package gzb.tools;
+
 import gzb.tools.config.StaticClasses;
 import gzb.tools.http.HTTP;
 import gzb.tools.http.HttpRequest;
+import gzb.tools.img.DrawmageUtil;
+import gzb.tools.img.GifCaptcha;
 import gzb.tools.log.LogImpl;
 import gzb.tools.entity.UploadEntity;
 import org.springframework.boot.system.ApplicationHome;
@@ -33,39 +36,47 @@ public class Tools {
         //0123456789abcdef
         //46cc793c53dc451b
         //m3u8ToMp4("https://jscdn4.easyland.club/GC7905BTH/hls/index.m3u8?sign=4355134565fc0de9d554c91bd204a29c&t=1665312588", "E:/20221003", "1.mp4",1000,2024);
-String miwen= "AeAqHGQAAi+zVFCQBeQCnsrzLjmSs+braEbikxMw0uzzdG9yv7LaP5lHAhDVi49Z8iBeadPzG3KVOspHAOSMSy7BtWXigotjyDL0l2/8ZdPjmmsSkYan9LIaNTgcBE8qgSGRZVoS68OZdQFKsYWQD9XbZcIXCN1cHi3KeJtAzXY2T7LpY5+lvvxjUw4qT88jaWuX6zOSeNIjUBEZFKnfF8paAuROdDziSOySUHBvN7jGxr+FjVaYxHsruRma0I8yfOifjBr8+0prWiCcIU8NBsRv9+m6r7EZbjI9XimugYOf6PG/sQWQ8In5f7CIZq/NHXmbdoRZmeDWH7sIhhCvfpMkl/65EBwO2RM13GLDArxAQHPYW5Bdyeg/vOlnSyonDMVM9+cvm/Atlgvl6sfC9PsPTq6SBX/jwBTVOxmzI6aUCBX/gV25KB/AccZxGlNkCSznU7T9BdAiA4PrhQEY//klVMQrVaNoww/fnBQMx5ZFcKBu+tEEiLLJHCFslyALhaSuNm+T9wYL4z3QLTN9bswzVxE9/cKGpDdBifG1B3Ed6XjljPb7xEYiauWYGkiOQ4JraDBt0byAd/1gHPmevYf0nBhRGsZyIhbomf7zTtVz9+QV4FJN6aVUSQkxb6yu";
+        String miwen = "AeAqHGQAAi+zVFCQBeQCnsrzLjmSs+braEbikxMw0uzzdG9yv7LaP5lHAhDVi49Z8iBeadPzG3KVOspHAOSMSy7BtWXigotjyDL0l2/8ZdPjmmsSkYan9LIaNTgcBE8qgSGRZVoS68OZdQFKsYWQD9XbZcIXCN1cHi3KeJtAzXY2T7LpY5+lvvxjUw4qT88jaWuX6zOSeNIjUBEZFKnfF8paAuROdDziSOySUHBvN7jGxr+FjVaYxHsruRma0I8yfOifjBr8+0prWiCcIU8NBsRv9+m6r7EZbjI9XimugYOf6PG/sQWQ8In5f7CIZq/NHXmbdoRZmeDWH7sIhhCvfpMkl/65EBwO2RM13GLDArxAQHPYW5Bdyeg/vOlnSyonDMVM9+cvm/Atlgvl6sfC9PsPTq6SBX/jwBTVOxmzI6aUCBX/gV25KB/AccZxGlNkCSznU7T9BdAiA4PrhQEY//klVMQrVaNoww/fnBQMx5ZFcKBu+tEEiLLJHCFslyALhaSuNm+T9wYL4z3QLTN9bswzVxE9/cKGpDdBifG1B3Ed6XjljPb7xEYiauWYGkiOQ4JraDBt0byAd/1gHPmevYf0nBhRGsZyIhbomf7zTtVz9+QV4FJN6aVUSQkxb6yu";
 
-        System.out.println("解密："+AES128.aesECBDe(miwen,"46cc793c53dc451b"));
-        HTTP http=new HTTP();
+        System.out.println("解密：" + AES128.aesECBDe(miwen, "46cc793c53dc451b"));
+        HTTP http = new HTTP();
 
-        http.addCookies("content-type","application/json;charset=UTF-8");
-        http.addCookies("timestamp",new DateTime().toStampInt()+"");
-        http.addCookies("timestr",getSing());
-        http.addCookies("token","");
-        http.addCookies("accept","application/json, text/plain, */*");
-        http.httpPostByte("https://www.kmqsaq.com/video/getList","{\"clientType\":1,\"length\":8,\"page\":1,\"type\":1,\"orderType\":10002,\"orderText\":[{\"dir\":\"desc\",\"column\":\"seeCount\"}]}");
+        http.addCookies("content-type", "application/json;charset=UTF-8");
+        http.addCookies("timestamp", new DateTime().toStampInt() + "");
+
+        http.addCookies("token", "");
+        http.addCookies("accept", "application/json, text/plain, */*");
+        http.httpPostByte("https://www.kmqsaq.com/video/getList", "{\"clientType\":1,\"length\":8,\"page\":1,\"type\":1,\"orderType\":10002,\"orderText\":[{\"dir\":\"desc\",\"column\":\"seeCount\"}]}");
 
         Log.i(http.toString());
 
 
     }
-public static final  String getSing(){
-        //928b0de8-8dfc-820f-c635-49be28d5fdae
-    return getRandomString(4) + getRandomString(4) + "-" +getRandomString(4) + "-" + getRandomString(4)+ "-" +getRandomString(4) + "-" +
-            getRandomString(4) +getRandomString(4) + getRandomString(4);
 
-}
-    public static byte[] readStream(InputStream inStream) throws Exception{
-        ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-        byte[] buffer = new byte[1024];
-        int len = -1;
-        while((len=inStream.read(buffer))!=-1){
-            outStream.write(buffer,0,len);
-        }
-        outStream.close();
-        inStream.close();
-        return outStream.toByteArray();
+    //验证码 老式
+    public static final String getPictureCode1(HttpServletResponse response, int type) throws IOException {
+        return new DrawmageUtil().verification(response, type);
     }
+
+    //验证码 老式
+    public static final String getPictureCode1(HttpServletResponse response) throws IOException {
+        return getPictureCode1(response, 2);
+    }
+
+    //验证码 gif 那种
+    public static final String getPictureCode2(HttpServletResponse response) throws IOException {
+        GifCaptcha gifCaptcha = new GifCaptcha(140, 45, 5);
+        String verCode = gifCaptcha.text().toLowerCase();
+        System.out.println(verCode);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        gifCaptcha.out(outputStream);
+        response.setContentType("image/gif");
+        response.getOutputStream().write(outputStream.toByteArray());
+        response.getOutputStream().flush();
+        return verCode;
+    }
+
+    //m3u8链接 转 mp4文件
     public static final File m3u8ToMp4(String m3u8Url, String filePath, String fileName, int intervalMin, int intervalMax) throws Exception {
         File file = new File(filePath.replaceAll("\\\\", "/") + "/" + fileName);
         String str1 = new HttpRequest().httpGet(m3u8Url).toString();
@@ -83,23 +94,10 @@ public static final  String getSing(){
         Log.i(file.getParent() + "/" + file.getName());
         return file;
     }
-    public static final File m3u8ToMp4(String m3u8Url, String filePath, String fileName) throws Exception{
-        return m3u8ToMp4(m3u8Url, filePath, fileName,0,0);
-    }
-    public static final ArrayList toArrayList() {
-        return new ArrayList() {
-            @Override
-            public String toString() {
-                System.out.println("ArrayList.toString");
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < this.size(); i++) {
-                    sb.append(this.get(i));
-                }
-                return sb.toString();
-            }
-        };
-    }
 
+    public static final File m3u8ToMp4(String m3u8Url, String filePath, String fileName) throws Exception {
+        return m3u8ToMp4(m3u8Url, filePath, fileName, 0, 0);
+    }
 
     public static final Object[] toArray(Object... objs) {
         return objs;
@@ -237,35 +235,35 @@ public static final  String getSing(){
 
     //json状态 1成功 2失败 3错误 4跳转网址
     public static final String jsonSuccess() {
-        return json(1, "成功", "{}", "");
+        return json(1, "成功", null, null);
     }
 
     public static final String jsonSuccess(String msg) {
-        return json(1, msg, "{}", "");
+        return json(1, msg, null, null);
     }
 
     public static final String jsonSuccess(String msg, List<?> list) {
-        return json(1, msg, list, "");
+        return json(1, msg, list, null);
     }
 
     public static final String jsonSuccess(List<?> list) {
-        return json(1, "成功", list, "");
+        return json(1, "成功", list, null);
     }
 
     public static final String jsonSuccess(String msg, Object data) {
-        return json(1, msg, data, "");
+        return json(1, msg, data, null);
     }
 
     public static final String jsonFail(String msg) {
-        return json(2, msg, "{}", "");
+        return json(2, msg, null, null);
     }
 
     public static final String jsonError() {
-        return json(3, "服务器发生错误,请稍后重试!", "{}", "");
+        return json(3, "服务器发生错误,请稍后重试!", null, null);
     }
 
     public static final String jsonError(String msg) {
-        return json(3, msg, "{}", "");
+        return json(3, msg, null, null);
     }
 
     public static final String jsonJump(String msg, String url, List<?> list) {
@@ -277,49 +275,87 @@ public static final  String getSing(){
     }
 
     public static final String jsonJump(String url) {
-        return json(4, "未登录或登录失效,请重新登录~", "{}", url);
+        return json(4, "未登录或登录失效,请重新登录~", null, url);
     }
-
     public static final String json(Object state, Object message, Object object, Object jump) {
+        return json(state, message, object, jump,null,null,null,null);
+    }
+    public static final String json(Object state, Object message, Object object, Object jump,Object page,Object limit,Object count,Object next) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder
-                .append("{")
-
-                .append("\"")
+                .append("{");
+        stringBuilder.append("\"")
                 .append(StaticClasses.json_code)
                 .append("\":\"")
                 .append(0)
-                .append("\",")
+                .append("\",");
+        if (state != null) {
+            stringBuilder.append("\"")
+                    .append(StaticClasses.json_state)
+                    .append("\":\"")
+                    .append(state)
+                    .append("\",");
+        }
+        if (message != null) {
+            stringBuilder.append("\"")
+                    .append(StaticClasses.json_message)
+                    .append("\":\"")
+                    .append(message)
+                    .append("\",");
+        }
+        if (jump != null) {
+            stringBuilder.append("\"")
+                    .append(StaticClasses.json_jump)
+                    .append("\":\"")
+                    .append(jump)
+                    .append("\",");
+        }
+        if (page != null) {
+            stringBuilder.append("\"")
+                    .append(StaticClasses.json_page)
+                    .append("\":\"")
+                    .append(page)
+                    .append("\",");
+        }
+        if (limit != null) {
+            stringBuilder.append("\"")
+                    .append(StaticClasses.json_limit)
+                    .append("\":\"")
+                    .append(limit)
+                    .append("\",");
+        }
+        if (count != null) {
+            stringBuilder.append("\"")
+                    .append(StaticClasses.json_count)
+                    .append("\":\"")
+                    .append(count)
+                    .append("\",");
+        }
+        if (next != null) {
+            stringBuilder.append("\"")
+                    .append(StaticClasses.json_next)
+                    .append("\":\"")
+                    .append(next)
+                    .append("\",");
+        }
 
-                .append("\"")
-                .append(StaticClasses.json_state)
-                .append("\":\"")
-                .append(state)
-                .append("\",")
-
-                .append("\"")
-                .append(StaticClasses.json_message)
-                .append("\":\"")
-                .append(message)
-                .append("\",")
-
-                .append("\"")
-                .append(StaticClasses.json_jump)
-                .append("\":\"")
-                .append(jump)
-                .append("\",")
-
-                .append("\"")
-                .append(StaticClasses.json_data)
-                .append("\":")
-                .append(object)
-                .append("}");
+        if (object != null) {
+            stringBuilder.append("\"")
+                    .append(StaticClasses.json_data)
+                    .append("\":")
+                    .append(object)
+                    .append(",");
+        }
+        stringBuilder.append("}");
+        if (stringBuilder.substring(stringBuilder.length()-1).equals(",")){
+            stringBuilder.delete(stringBuilder.length()-1,stringBuilder.length());
+        }
         String json = stringBuilder.toString()
                 .replaceAll("\r\n", "\\\\r\\\\n")
                 .replaceAll("\r", "\\\\r")
                 .replaceAll("\n", "\\\\n")
                 .replaceAll("\t", "\\\\t");
-        //Log.i(json);
+        Log.i(json);
         return json;
     }
 

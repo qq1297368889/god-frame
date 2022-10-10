@@ -14,11 +14,13 @@ public class Auto {
     public static void main(String[] args) {
         // 郭振帮最伟大，天下无敌，绝世无双，人见人爱，花见花开，少女杀手，少妇领主
         // 2019-10-09
+        //pay_system
+        //gzb_system
         generate(null, "pay_system", "*", true,true);
     }
 
     /**
-     * @param projectPath 项目路径
+     * @param projectPath 项目路径 为空默认调用 Tools.getProjectPath()
      * @param dbName      数据库名称 需要和配置文件中对应
      * @param tableName   需要生成哪些表 *表示所有表 否则就 表名/表名/
      * @param hump  true 命名 驼峰   false 和数据库保持一致
@@ -31,7 +33,7 @@ public class Auto {
         }
     }
     /**
-     * @param projectPath 项目路径
+     * @param projectPath 项目路径 为空默认调用 Tools.getProjectPath()
      * @param dbName      数据库名称 需要和配置文件中对应
      * @param tableName   需要生成哪些表 *表示所有表 否则就 表名/表名/
      */
@@ -48,7 +50,7 @@ public class Auto {
     }
 
     /**
-     * @param projectPath 项目路径
+     * @param projectPath 项目路径 为空默认调用 Tools.getProjectPath()
      * @param dbName      数据库名称 需要和配置文件中对应
      * @param tableName   需要生成哪些表 *表示所有表 否则就 表名/表名/
      */
@@ -142,7 +144,16 @@ class AutoHump {
             String 表名小写 = lowStr_x(entity.name);
             String id = (lowStr_x(entity.id));
             code0 += "    public static String " + lowStr_hump(表名小写) + "Name=\"" + 表名小写 + "\";\n";
-            code1 += "            " + lowStr_hump(表名小写) + "Name =division(" + lowStr_hump(表名小写) + "Name,Tools.configGetInteger(\"gzb.db." + dbName + ".division." + lowStr_x(entity.name) + "\",\"0\"));\n";
+            code1 += "                        " + lowStr_hump(表名小写) + "Name = division(" + lowStr_hump(表名小写) + "Name,Tools.configGetInteger(\"gzb.db." + dbName + ".division." + lowStr_x(entity.name) + "\",\"0\"));\n";
+
+        }
+        for (DB_entity entity : list) {
+            String 表名大写 = lowStr_d(entity.name);
+            String 表名小写 = lowStr_x(entity.name);
+            String id = (lowStr_x(entity.id));
+            if (entity.idType.equals("java.lang.Integer")){
+                code1 +="                        Cache.gzbCache.set(\"db_"+表名小写+"_"+id+"_auto_incr\", db.getMaxId_db_private(\""+表名小写+"\", \""+id+"\").toString());\n";
+            }
         }
 
         String code = "package gzb.db." + dbName + ";\n" +
@@ -151,6 +162,7 @@ class AutoHump {
                 "import gzb.tools.*;\n" +
                 "import gzb.tools.thread.GzbThread;\n" +
                 "import gzb.tools.thread.ThreadPool;\n" +
+                "import gzb.tools.cache.Cache;\n" +
                 "\n" +
                 "import java.sql.*;\n" +
                 "import java.util.*;\n" +
@@ -164,111 +176,27 @@ class AutoHump {
                 "    static Log Log=new LogImpl(DataBase.class);\n" +
                 code0 +
                 "    public static DB db = new DB(\"" + dbName + "\");\n" +
-                "    public static Map<String, List<Object[]>> mapAskSql = new HashMap<>();\n" +
-                "    public static Lock lockAsy = new ReentrantLock();\n" +
-                "\n" +
                 "    static {\n" +
                 "        try {\n" +
+                "            ThreadPool.start(new GzbThread() {\n" +
+                "                @Override\n" +
+                "                public void start() throws Exception {\n" +
+                "                    while (true){\n" +
                 code1 +
-                "\n" +
-                "        } catch (Exception e) {\n" +
-                "            e.printStackTrace();\n" +
-                "        }\n" +
-                "\n" +
-                "    }\n" +
-                "\n" +
-                "    public static final int addAsyInfo(String sql, Object[] objs) {\n" +
-                "        DataBase.lockAsy.lock();\n" +
-                "        try {\n" +
-                "            List<Object[]> list = DataBase.mapAskSql.get(sql);\n" +
-                "            if (list == null) {\n" +
-                "                list = new ArrayList<>();\n" +
-                "            }\n" +
-                "            list.add(objs);\n" +
-                "            DataBase.mapAskSql.put(sql, list);\n" +
-                "            return 1;\n" +
-                "        } finally {\n" +
-                "            DataBase.lockAsy.unlock();\n" +
-                "        }\n" +
-                "    }\n" +
-                "\n" +
-                "    static {\n" +
-                "        ThreadPool.start(new GzbThread() {\n" +
-                "            @Override\n" +
-                "            public void start() {\n" +
-                "                Connection conn = null;\n" +
-                "                ResultSet rs = null;\n" +
-                "                PreparedStatement ps = null;\n" +
-                "                while (true) {\n" +
-                "                    try {\n" +
-                "                        if (mapAskSql.size() == 0) {\n" +
-                "                            Thread.sleep(100);\n" +
-                "                            continue;\n" +
-                "                        }\n" +
-                "                        Map<String, List<Object[]>> map = mapAskSql;\n" +
-                "                        List<Object[]> list = null;\n" +
-                "                        mapAskSql = new HashMap<>();\n" +
-                "                        lockAsy.lock();\n" +
-                "                        lockAsy.unlock();\n" +
-                "                        conn = DataBase.db.getConnection();\n" +
-                "                        try {\n" +
-                "                            conn.setAutoCommit(false);\n" +
-                "                            for (Iterator<Map.Entry<String, List<Object[]>>> it = map.entrySet().iterator(); it.hasNext(); ) {\n" +
-                "                                long t1 = new Date().getTime();\n" +
-                "                                StringBuilder sb = new StringBuilder();\n" +
-                "                                Map.Entry<String, List<Object[]>> en = it.next();\n" +
-                "                                ps = conn.prepareStatement(en.getKey());\n" +
-                "                                list = en.getValue();\n" +
-                "                                sb.append(\"异步操作\").append(en.getKey())\n" +
-                "                                        .append(\"[\")\n" +
-                "                                        .append(list.size())\n" +
-                "                                        .append(\"条]:\");\n" +
-                "                                for (int i = 0; i < list.size(); i++) {\n" +
-                "                                    Object[] objs = list.get(i);\n" +
-                "                                    sb.append(\"{\");\n" +
-                "                                    for (int j = 0; j < objs.length; j++) {\n" +
-                "                                        ps.setObject(j + 1, objs[j]);\n" +
-                "                                        if (j == objs.length - 1) {\n" +
-                "                                            sb.append(\"'\").append(objs[j]).append(\"'\");\n" +
-                "                                        } else {\n" +
-                "                                            sb.append(\"'\").append(objs[j]).append(\"',\");\n" +
-                "                                        }\n" +
-                "                                    }\n" +
-                "\n" +
-                "                                    if (i == list.size() - 1) {\n" +
-                "                                        sb.append(\"}\\r\\n\");\n" +
-                "                                    } else {\n" +
-                "                                        sb.append(\"},\");\n" +
-                "                                    }\n" +
-                "                                    ps.addBatch();\n" +
-                "                                }\n" +
-                "                                long t2 = new Date().getTime();\n" +
-                "                                sb.append(\"组装耗时:\");\n" +
-                "                                sb.append(t2 - t1);\n" +
-                "                                sb.append(\"毫秒\");\n" +
-                "                                t1 = new Date().getTime();\n" +
-                "                                int[] res = ps.executeBatch();\n" +
-                "                                conn.commit();\n" +
-                "                                t2 = new Date().getTime();\n" +
-                "                                sb.append(\";执行耗时:\");\n" +
-                "                                sb.append(t2 - t1);\n" +
-                "                                sb.append(\"毫秒\");\n" +
-                "                                Log.sql(sb.toString());\n" +
-                "                            }\n" +
-                "                        } finally {\n" +
-                "                            try {\n" +
-                "                                conn.setAutoCommit(true);\n" +
-                "                                DataBase.db.close(conn, rs, ps);\n" +
-                "                            } catch (SQLException e) {\n" +
-                "                                e.printStackTrace();\n" +
-                "                            }\n" +
-                "                        }\n" +
-                "                    } catch (Exception e) {\n" +
-                "                        Log.e(e);\n" +
+                "                        sleep(1000*60);\n" +
                 "                    }\n" +
                 "                }\n" +
-                "            }\n" +
-                "        }, \"DataBase.asy\", false);\n" +
+                "                public void sleep(int hm){\n" +
+                "                    try {\n" +
+                "                        Thread.sleep(hm);\n" +
+                "                    }catch (Exception e){\n" +
+                "                        e.printStackTrace();\n" +
+                "                    }\n" +
+                "                }\n" +
+                "            }); \n" +
+                "        } catch (Exception e) {\n" +
+                "            e.printStackTrace();\n" +
+                "        } \n" +
                 "    }\n" +
                 "    //0不开启  1按年分表 2按月分表 3按天分表\n" +
                 "    public static final String division(String mapName, int lv) {\n" +
@@ -330,12 +258,13 @@ class AutoHump {
             String 表名_首字母大写 = lowStr_hump(db_entity.name);
             String 表名_首字母小写 = lowStr_hump(db_entity.name);
             String id = lowStr_x(lowStr_x(db_entity.id));
+            String idType = lowStr_x(lowStr_x(db_entity.idType));
             code2 += "import gzb.db." + dbName + ".entity." + 表名_驼峰_首字母大写 + ";\n";
             code1 +=
-                    "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(Long " + lowStr_hump(id) + ");\n" +
+                    "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find("+idType+" " + lowStr_hump(id) + ");\n" +
                             "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(String sql, Object[] arr);\n" +
                             "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
-                            "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(Long " + id + ",int mm);\n" +
+                            "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache("+idType+" " + id + ",int mm);\n" +
                             "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(String sql, Object[] arr,int mm);\n" +
                             "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ",int mm);\n" +
                             "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "Query(String sql, Object[] arr);\n" +
@@ -380,6 +309,7 @@ class AutoHump {
             String 表名_首字母大写 = lowStr_hump(db_entity.name);
             String 表名_首字母小写 = lowStr_hump(db_entity.name);
             String id = lowStr_x(lowStr_x(db_entity.id));
+            String idType = lowStr_x(lowStr_x(db_entity.idType));
             code1 = "";
             for (int i = 0; i < db_entity.subName.size(); i++) {
                 String 列名大写 = lowStr_hump(db_entity.subName.get(i), true);
@@ -406,7 +336,7 @@ class AutoHump {
                     "        return list;\n" +
                     "    }\n";
             code4 += "    @Override\n" +
-                    "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(Long " + id + ") {\n" +
+                    "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find("+idType+" " + id + ") {\n" +
                     "        List<" + 表名_驼峰_首字母大写 + "> list = " + 表名_驼峰_首字母小写 + "Query(\"select * from \"+DataBase." + 表名_驼峰_首字母小写 + "Name+\" where " + id + "=?\", Tools.toArray(" + id + "));\n" +
                     "        if (list.size() != 1) {\n" +
                     "            return null;\n" +
@@ -441,7 +371,7 @@ class AutoHump {
                     "        }\n" +
                     "        return list.get(0);\n" +
                     "    }\n" +
-                    "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(Long " + id + ",int mm) {\n" +
+                    "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache("+idType+" " + id + ",int mm) {\n" +
                     "        List<" + 表名_驼峰_首字母大写 + "> list = " + 表名_驼峰_首字母小写 + "QueryCache(\"select * from \"+DataBase." + 表名_驼峰_首字母小写 + "Name+\" where " + id + "=?\", Tools.toArray(" + id + "),mm);\n" +
                     "        if (list.size() != 1) {\n" +
                     "            return null;\n" +
@@ -573,7 +503,9 @@ class AutoHump {
                     "\n" +
                     "    @Override\n" +
                     "    public int " + 表名_驼峰_首字母小写 + "Insert(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ") {\n" +
-                    "        " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "(DataBase.db.getOnlyIdDistributed());\n" +
+                    "        " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "("+(idType.equals("java.lang.Long")?"DataBase.db.getOnlyIdDistributed()":"DataBase.db.getOnlyIdNumber(\""+db_entity.name+"\",\""+id+"\")")+");\n" +
+
+
                     "        AutoSqlEntity ase = " + 表名_驼峰_首字母小写 + ".toInsert();\n" +
                     "        return DataBase.db.runSqlUpdateOrSaveOrDelete(ase.sql, ase.objs);\n" +
                     "    }\n" +
@@ -593,22 +525,22 @@ class AutoHump {
                     "    @Override\n" +
                     "    public int " + 表名_驼峰_首字母小写 + "InsertAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", boolean auto) {\n" +
                     "        if (auto) {\n" +
-                    "            " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "(DataBase.db.getOnlyIdDistributed());\n" +
+                    "        " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "("+(idType.equals("java.lang.Long")?"DataBase.db.getOnlyIdDistributed()":"DataBase.db.getOnlyIdNumber(\""+db_entity.name+"\",\""+id+"\")")+");\n" +
                     "        }\n" +
                     "        AutoSqlEntity ase = " + 表名_驼峰_首字母小写 + ".toInsert();\n" +
-                    "        return DataBase.addAsyInfo(ase.sql, ase.objs);\n" +
+                    "        return DataBase.db.addAsyInfo(ase.sql, ase.objs);\n" +
                     "    }\n" +
                     "\n" +
                     "    @Override\n" +
                     "    public int " + 表名_驼峰_首字母小写 + "DeleteAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ") {\n" +
                     "        AutoSqlEntity ase = " + 表名_驼峰_首字母小写 + ".toUpdate();\n" +
-                    "        return DataBase.addAsyInfo(ase.sql, ase.objs);\n" +
+                    "        return DataBase.db.addAsyInfo(ase.sql, ase.objs);\n" +
                     "    }\n" +
                     "\n" +
                     "    @Override\n" +
                     "    public int " + 表名_驼峰_首字母小写 + "UpdateAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ") {\n" +
                     "        AutoSqlEntity ase = " + 表名_驼峰_首字母小写 + ".toUpdate();\n" +
-                    "        return DataBase.addAsyInfo(ase.sql, ase.objs);\n" +
+                    "        return DataBase.db.addAsyInfo(ase.sql, ase.objs);\n" +
                     "    }\n" +
                     "\n" +
                     "    @Override\n" +
@@ -626,7 +558,7 @@ class AutoHump {
                     "            long t1 = new Date().getTime();\n" +
                     "            for (int i = 0; i < list.size(); i++) {\n" +
                     "                if (autoId) {\n" +
-                    "                    list.get(i).set" + lowStr_hump(id, true) + "(DataBase.db.getOnlyIdDistributed());\n" +
+                    "                    list.get(i).set" + lowStr_hump(id, true) + "("+(idType.equals("java.lang.Long")?"DataBase.db.getOnlyIdDistributed()":"DataBase.db.getOnlyIdNumber(\""+db_entity.name+"\",\""+id+"\")")+");\n" +
                     "                }\n" +
                     "                AutoSqlEntity ase = list.get(i).toInsert();\n" +
                     "                if (i == 0) {\n" +
@@ -751,15 +683,16 @@ class AutoHump {
 
         String id = lowStr_x(lowStr_x(entity.id));
 
+        String idType = lowStr_x(lowStr_x(entity.idType));
         String code = "package gzb.db." + dbName + ".dao;\n" +
                 "import gzb.db." + dbName + ".entity." + 表名_驼峰_首字母大写 + ";\n" +
                 "import gzb.tools.ListPage;\n" +
                 "import java.util.List;\n" +
                 "public interface " + 表名_驼峰_首字母大写 + "Dao {\n" +
-                "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(Long " + lowStr_hump(id) + ");\n" +
+                "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find("+idType+" " + lowStr_hump(id) + ");\n" +
                 "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(String sql, Object[] arr);\n" +
                 "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
-                "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(Long " + id + ",int mm);\n" +
+                "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache("+idType+" " + id + ",int mm);\n" +
                 "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(String sql, Object[] arr,int mm);\n" +
                 "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ",int mm);\n" +
                 "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "Query(String sql, Object[] arr);\n" +
@@ -791,6 +724,7 @@ class AutoHump {
         String 表名_驼峰_首字母大写 = lowStr_d(表名_驼峰_首字母小写);
 
         String id = lowStr_x(lowStr_x(entity.id));
+        String idType = lowStr_x(lowStr_x(entity.idType));
         String code0 = "";
         for (int i = 0; i < entity.subName.size(); i++) {
             String 列名大写 = lowStr_hump(entity.subName.get(i), true);
@@ -829,7 +763,7 @@ class AutoHump {
                 "        return list;\n" +
                 "    }\n" +
                 "    @Override\n" +
-                "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(Long " + id + ") {\n" +
+                "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find("+idType+" " + id + ") {\n" +
                 "        List<" + 表名_驼峰_首字母大写 + "> list = " + 表名_驼峰_首字母小写 + "Query(\"select * from \"+DataBase." + 表名_驼峰_首字母小写 + "Name+\" where " + id + "=?\", Tools.toArray(" + id + "));\n" +
                 "        if (list.size() != 1) {\n" +
                 "            return null;\n" +
@@ -864,7 +798,7 @@ class AutoHump {
                 "        }\n" +
                 "        return list.get(0);\n" +
                 "    }\n" +
-                "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(Long " + id + ",int mm) {\n" +
+                "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache("+idType+" " + id + ",int mm) {\n" +
                 "        List<" + 表名_驼峰_首字母大写 + "> list = " + 表名_驼峰_首字母小写 + "QueryCache(\"select * from \"+DataBase." + 表名_驼峰_首字母小写 + "Name+\" where " + id + "=?\", Tools.toArray(" + id + "),mm);\n" +
                 "        if (list.size() != 1) {\n" +
                 "            return null;\n" +
@@ -996,7 +930,7 @@ class AutoHump {
                 "\n" +
                 "    @Override\n" +
                 "    public int " + 表名_驼峰_首字母小写 + "Insert(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ") {\n" +
-                "        " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "(DataBase.db.getOnlyIdDistributed());\n" +
+                "        " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "("+(idType.equals("java.lang.Long")?"DataBase.db.getOnlyIdDistributed()":"DataBase.db.getOnlyIdNumber(\""+entity.name+"\",\""+id+"\")")+");\n" +
                 "        AutoSqlEntity ase = " + 表名_驼峰_首字母小写 + ".toInsert();\n" +
                 "        return DataBase.db.runSqlUpdateOrSaveOrDelete(ase.sql, ase.objs);\n" +
                 "    }\n" +
@@ -1016,22 +950,22 @@ class AutoHump {
                 "    @Override\n" +
                 "    public int " + 表名_驼峰_首字母小写 + "InsertAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", boolean auto) {\n" +
                 "        if (auto) {\n" +
-                "            " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "(DataBase.db.getOnlyIdDistributed());\n" +
+                "            " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "("+(idType.equals("java.lang.Long")?"DataBase.db.getOnlyIdDistributed()":"DataBase.db.getOnlyIdNumber(\""+entity.name+"\",\""+id+"\")")+");\n" +
                 "        }\n" +
                 "        AutoSqlEntity ase = " + 表名_驼峰_首字母小写 + ".toInsert();\n" +
-                "        return DataBase.addAsyInfo(ase.sql, ase.objs);\n" +
+                "        return DataBase.db.addAsyInfo(ase.sql, ase.objs);\n" +
                 "    }\n" +
                 "\n" +
                 "    @Override\n" +
                 "    public int " + 表名_驼峰_首字母小写 + "DeleteAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ") {\n" +
                 "        AutoSqlEntity ase = " + 表名_驼峰_首字母小写 + ".toUpdate();\n" +
-                "        return DataBase.addAsyInfo(ase.sql, ase.objs);\n" +
+                "        return DataBase.db.addAsyInfo(ase.sql, ase.objs);\n" +
                 "    }\n" +
                 "\n" +
                 "    @Override\n" +
                 "    public int " + 表名_驼峰_首字母小写 + "UpdateAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ") {\n" +
                 "        AutoSqlEntity ase = " + 表名_驼峰_首字母小写 + ".toUpdate();\n" +
-                "        return DataBase.addAsyInfo(ase.sql, ase.objs);\n" +
+                "        return DataBase.db.addAsyInfo(ase.sql, ase.objs);\n" +
                 "    }\n" +
                 "\n" +
                 "    @Override\n" +
@@ -1049,7 +983,7 @@ class AutoHump {
                 "            long t1 = new Date().getTime();\n" +
                 "            for (int i = 0; i < list.size(); i++) {\n" +
                 "                if (autoId) {\n" +
-                "                    list.get(i).set" + lowStr_hump(id, true) + "(DataBase.db.getOnlyIdDistributed());\n" +
+                "                    list.get(i).set" + lowStr_hump(id, true) + "("+(idType.equals("java.lang.Long")?"DataBase.db.getOnlyIdDistributed()":"DataBase.db.getOnlyIdNumber(\""+entity.name+"\",\""+id+"\")")+");\n" +
                 "                }\n" +
                 "                AutoSqlEntity ase = list.get(i).toInsert();\n" +
                 "                if (i == 0) {\n" +
@@ -1170,6 +1104,7 @@ class AutoHump {
         String code7 = "";
         String code8 = "";
         String code9 = "";
+        String code10 = "";
         for (int i = 0; i < entity.subName.size(); i++) {
             String 列名_小写 = lowStr_x(entity.subName.get(i));
             String 列名_驼峰_小写 = lowStr_hump(列名_小写);
@@ -1201,10 +1136,14 @@ class AutoHump {
                     "    }\n";
             code0 += "    private " + entity.subType.get(i) + " " + 列名_驼峰_小写 + ";\n";
             if (i == entity.subName.size() - 1) {
+                code10+="                .append(this."+列名_驼峰_小写+"==null?\"\":this."+列名_驼峰_小写+")\n" +
+                        "                .append(\"')\").toString();\n";
                 code6 += 列名_小写 + "";
                 code7 += "?";
                 code2 += "        if (" + 列名_驼峰_小写 + " != null){sb.append(\"\\\"" + 列名_驼峰_小写 + "\\\":\\\"\").append(" + 列名_驼峰_小写 + ").append(\"\\\"\");}\n";
             } else {
+                code10+="                .append(this."+列名_驼峰_小写+"==null?\"\":this."+列名_驼峰_小写+")\n" +
+                        "                .append(\"','\")\n";
                 code6 += 列名_小写 + ",";
                 code7 += "?,";
                 code2 += "        if (" + 列名_驼峰_小写 + " != null){sb.append(\"\\\"" + 列名_驼峰_小写 + "\\\":\\\"\").append(" + 列名_驼峰_小写 + ").append(\"\\\",\");}\n";
@@ -1280,6 +1219,10 @@ class AutoHump {
                 code8 +
                 "        return new AutoSqlEntity(sb.toString(),list.toArray());\n" +
                 "    }\n" +
+                "    public String toInsert2(){\n" +
+                "        return new StringBuilder().append(\"insert into \"+DataBase." + 表名 + "Name+\"(" + code6 + ") values('\")\n" +
+                code10 +
+                "    }\n" +
 
                 "    public " + lowStr_d(表名) + " find(BaseDao dao) {\n" +
                 "        return dao." + lowStr_x(表名) + "Find(this);\n" +
@@ -1352,6 +1295,7 @@ class AutoHump {
         String code7 = "";
         String code8 = "";
         String code9 = "";
+        String code10="";
         for (int i = 0; i < entity.subName.size(); i++) {
             String 列名_小写 = lowStr_x(entity.subName.get(i));
             String 列名_驼峰_小写 = lowStr_hump(列名_小写);
@@ -1386,10 +1330,17 @@ class AutoHump {
                 code6 += 列名_小写 + "";
                 code7 += "?";
                 code2 += "        if (" + 列名_驼峰_小写 + " != null){sb.append(\"\\\"" + 列名_驼峰_小写 + "\\\":\\\"\").append(" + 列名_驼峰_小写 + ").append(\"\\\"\");}\n";
+
+                code10+="                .append(this."+列名_驼峰_小写+"==null?\"\":this."+列名_驼峰_小写+")\n" +
+                        "                .append(\"')\").toString();\n";
             } else {
                 code6 += 列名_小写 + ",";
                 code7 += "?,";
                 code2 += "        if (" + 列名_驼峰_小写 + " != null){sb.append(\"\\\"" + 列名_驼峰_小写 + "\\\":\\\"\").append(" + 列名_驼峰_小写 + ").append(\"\\\",\");}\n";
+
+
+                code10+="                .append(this."+列名_驼峰_小写+"==null?\"\":this."+列名_驼峰_小写+")\n" +
+                        "                .append(\"','\")\n";
             }
         }
         code += "package gzb.db." + dbName + ".entity;\n" +
@@ -1461,6 +1412,12 @@ class AutoHump {
                 "        sb.append(\"insert into \"+DataBase." + 表名 + "Name+\"(" + code6 + ") values(" + code7 + ")\");\n" +
                 code8 +
                 "        return new AutoSqlEntity(sb.toString(),list.toArray());\n" +
+                "    }\n" +
+
+
+                "    public String toInsert2(){\n" +
+                "        return new StringBuilder().append(\"insert into \"+DataBase." + 表名 + "Name+\"(" + code6 + ") values('\")\n" +
+                code10 +
                 "    }\n" +
 
 
@@ -1679,7 +1636,8 @@ class AutoOriginal {
             String 表名小写 = lowStr_x(entity.name);
             String id = (lowStr_x(entity.id));
             code0 += "    public static String " + lowStr_hump(表名小写) + "Name=\"" + 表名小写 + "\";\n";
-            code1 += "            " + lowStr_hump(表名小写) + "Name =division(" + lowStr_hump(表名小写) + "Name,Tools.configGetInteger(\"gzb.db." + dbName + ".division." + lowStr_x(entity.name) + "\",\"0\"));\n";
+            code1 += "            Cache.gzbCache.set(\"db_"+表名小写+"_"+id+"_auto_incr\", db.getMaxId_db_private(\""+表名小写+"\", \""+id+"\").toString());\n" +
+                    "                        " + lowStr_hump(表名小写) + "Name = division(" + lowStr_hump(表名小写) + "Name,Tools.configGetInteger(\"gzb.db." + dbName + ".division." + lowStr_x(entity.name) + "\",\"0\"));\n";
         }
 
         String code = "package gzb.db." + dbName + ";\n" +
@@ -1688,12 +1646,9 @@ class AutoOriginal {
                 "import gzb.tools.*;\n" +
                 "import gzb.tools.thread.GzbThread;\n" +
                 "import gzb.tools.thread.ThreadPool;\n" +
+                "import gzb.tools.cache.Cache;\n" +
                 "\n" +
                 "import java.sql.*;\n" +
-                "import java.util.*;\n" +
-                "import java.util.Date;\n" +
-                "import java.util.concurrent.locks.Lock;\n" +
-                "import java.util.concurrent.locks.ReentrantLock;\n" +
                 "import gzb.tools.log.Log;\n" +
                 "import gzb.tools.log.LogImpl;\n" +
                 "\n" +
@@ -1701,111 +1656,28 @@ class AutoOriginal {
                 "    static Log Log=new LogImpl(DataBase.class);\n" +
                 code0 +
                 "    public static DB db = new DB(\"" + dbName + "\");\n" +
-                "    public static Map<String, List<Object[]>> mapAskSql = new HashMap<>();\n" +
-                "    public static Lock lockAsy = new ReentrantLock();\n" +
-                "\n" +
+
                 "    static {\n" +
                 "        try {\n" +
+                "            ThreadPool.start(new GzbThread() {\n" +
+                "                @Override\n" +
+                "                public void start() throws Exception {\n" +
+                "                    while (true){\n" +
                 code1 +
-                "\n" +
-                "        } catch (Exception e) {\n" +
-                "            e.printStackTrace();\n" +
-                "        }\n" +
-                "\n" +
-                "    }\n" +
-                "\n" +
-                "    public static final int addAsyInfo(String sql, Object[] objs) {\n" +
-                "        DataBase.lockAsy.lock();\n" +
-                "        try {\n" +
-                "            List<Object[]> list = DataBase.mapAskSql.get(sql);\n" +
-                "            if (list == null) {\n" +
-                "                list = new ArrayList<>();\n" +
-                "            }\n" +
-                "            list.add(objs);\n" +
-                "            DataBase.mapAskSql.put(sql, list);\n" +
-                "            return 1;\n" +
-                "        } finally {\n" +
-                "            DataBase.lockAsy.unlock();\n" +
-                "        }\n" +
-                "    }\n" +
-                "\n" +
-                "    static {\n" +
-                "        ThreadPool.start(new GzbThread() {\n" +
-                "            @Override\n" +
-                "            public void start() {\n" +
-                "                Connection conn = null;\n" +
-                "                ResultSet rs = null;\n" +
-                "                PreparedStatement ps = null;\n" +
-                "                while (true) {\n" +
-                "                    try {\n" +
-                "                        if (mapAskSql.size() == 0) {\n" +
-                "                            Thread.sleep(100);\n" +
-                "                            continue;\n" +
-                "                        }\n" +
-                "                        Map<String, List<Object[]>> map = mapAskSql;\n" +
-                "                        List<Object[]> list = null;\n" +
-                "                        mapAskSql = new HashMap<>();\n" +
-                "                        lockAsy.lock();\n" +
-                "                        lockAsy.unlock();\n" +
-                "                        conn = DataBase.db.getConnection();\n" +
-                "                        try {\n" +
-                "                            conn.setAutoCommit(false);\n" +
-                "                            for (Iterator<Map.Entry<String, List<Object[]>>> it = map.entrySet().iterator(); it.hasNext(); ) {\n" +
-                "                                long t1 = new Date().getTime();\n" +
-                "                                StringBuilder sb = new StringBuilder();\n" +
-                "                                Map.Entry<String, List<Object[]>> en = it.next();\n" +
-                "                                ps = conn.prepareStatement(en.getKey());\n" +
-                "                                list = en.getValue();\n" +
-                "                                sb.append(\"异步操作\").append(en.getKey())\n" +
-                "                                        .append(\"[\")\n" +
-                "                                        .append(list.size())\n" +
-                "                                        .append(\"条]:\");\n" +
-                "                                for (int i = 0; i < list.size(); i++) {\n" +
-                "                                    Object[] objs = list.get(i);\n" +
-                "                                    sb.append(\"{\");\n" +
-                "                                    for (int j = 0; j < objs.length; j++) {\n" +
-                "                                        ps.setObject(j + 1, objs[j]);\n" +
-                "                                        if (j == objs.length - 1) {\n" +
-                "                                            sb.append(\"'\").append(objs[j]).append(\"'\");\n" +
-                "                                        } else {\n" +
-                "                                            sb.append(\"'\").append(objs[j]).append(\"',\");\n" +
-                "                                        }\n" +
-                "                                    }\n" +
-                "\n" +
-                "                                    if (i == list.size() - 1) {\n" +
-                "                                        sb.append(\"}\\r\\n\");\n" +
-                "                                    } else {\n" +
-                "                                        sb.append(\"},\");\n" +
-                "                                    }\n" +
-                "                                    ps.addBatch();\n" +
-                "                                }\n" +
-                "                                long t2 = new Date().getTime();\n" +
-                "                                sb.append(\"组装耗时:\");\n" +
-                "                                sb.append(t2 - t1);\n" +
-                "                                sb.append(\"毫秒\");\n" +
-                "                                t1 = new Date().getTime();\n" +
-                "                                int[] res = ps.executeBatch();\n" +
-                "                                conn.commit();\n" +
-                "                                t2 = new Date().getTime();\n" +
-                "                                sb.append(\";执行耗时:\");\n" +
-                "                                sb.append(t2 - t1);\n" +
-                "                                sb.append(\"毫秒\");\n" +
-                "                                Log.sql(sb.toString());\n" +
-                "                            }\n" +
-                "                        } finally {\n" +
-                "                            try {\n" +
-                "                                conn.setAutoCommit(true);\n" +
-                "                                DataBase.db.close(conn, rs, ps);\n" +
-                "                            } catch (SQLException e) {\n" +
-                "                                e.printStackTrace();\n" +
-                "                            }\n" +
-                "                        }\n" +
-                "                    } catch (Exception e) {\n" +
-                "                        Log.e(e);\n" +
+                "                        sleep(1000*60);\n" +
                 "                    }\n" +
                 "                }\n" +
-                "            }\n" +
-                "        }, \"DataBase.asy\", false);\n" +
+                "                public void sleep(int hm){\n" +
+                "                    try {\n" +
+                "                        Thread.sleep(hm);\n" +
+                "                    }catch (Exception e){\n" +
+                "                        e.printStackTrace();\n" +
+                "                    }\n" +
+                "                }\n" +
+                "            }); \n" +
+                "        } catch (Exception e) {\n" +
+                "            e.printStackTrace();\n" +
+                "        } \n" +
                 "    }\n" +
                 "    //0不开启  1按年分表 2按月分表 3按天分表\n" +
                 "    public static final String division(String mapName, int lv) {\n" +
@@ -1867,12 +1739,13 @@ class AutoOriginal {
             String 表名_首字母大写 = lowStr_hump(db_entity.name);
             String 表名_首字母小写 = lowStr_hump(db_entity.name);
             String id = lowStr_x(lowStr_x(db_entity.id));
+            String idType = lowStr_x(lowStr_x(db_entity.idType));
             code2 += "import gzb.db." + dbName + ".entity." + 表名_驼峰_首字母大写 + ";\n";
             code1 +=
-                    "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(Long " + lowStr_hump(id) + ");\n" +
+                    "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find("+idType+" " + lowStr_hump(id) + ");\n" +
                             "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(String sql, Object[] arr);\n" +
                             "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
-                            "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(Long " + id + ",int mm);\n" +
+                            "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache("+idType+" " + id + ",int mm);\n" +
                             "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(String sql, Object[] arr,int mm);\n" +
                             "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ",int mm);\n" +
                             "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "Query(String sql, Object[] arr);\n" +
@@ -1917,6 +1790,7 @@ class AutoOriginal {
             String 表名_首字母大写 = lowStr_hump(db_entity.name);
             String 表名_首字母小写 = lowStr_hump(db_entity.name);
             String id = lowStr_x(lowStr_x(db_entity.id));
+            String idType = lowStr_x(lowStr_x(db_entity.idType));
             code1 = "";
             for (int i = 0; i < db_entity.subName.size(); i++) {
                 String 列名大写 = lowStr_hump(db_entity.subName.get(i), true);
@@ -1943,7 +1817,7 @@ class AutoOriginal {
                     "        return list;\n" +
                     "    }\n";
             code4 += "    @Override\n" +
-                    "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(Long " + id + ") {\n" +
+                    "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find("+idType+" " + id + ") {\n" +
                     "        List<" + 表名_驼峰_首字母大写 + "> list = " + 表名_驼峰_首字母小写 + "Query(\"select * from \"+DataBase." + 表名_驼峰_首字母小写 + "Name+\" where " + id + "=?\", Tools.toArray(" + id + "));\n" +
                     "        if (list.size() != 1) {\n" +
                     "            return null;\n" +
@@ -1978,7 +1852,7 @@ class AutoOriginal {
                     "        }\n" +
                     "        return list.get(0);\n" +
                     "    }\n" +
-                    "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(Long " + id + ",int mm) {\n" +
+                    "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache("+idType+" " + id + ",int mm) {\n" +
                     "        List<" + 表名_驼峰_首字母大写 + "> list = " + 表名_驼峰_首字母小写 + "QueryCache(\"select * from \"+DataBase." + 表名_驼峰_首字母小写 + "Name+\" where " + id + "=?\", Tools.toArray(" + id + "),mm);\n" +
                     "        if (list.size() != 1) {\n" +
                     "            return null;\n" +
@@ -2110,7 +1984,7 @@ class AutoOriginal {
                     "\n" +
                     "    @Override\n" +
                     "    public int " + 表名_驼峰_首字母小写 + "Insert(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ") {\n" +
-                    "        " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "(DataBase.db.getOnlyIdDistributed());\n" +
+                    "        " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "("+(idType.equals("java.lang.Long")?"DataBase.db.getOnlyIdDistributed()":"DataBase.db.getOnlyIdNumber(\""+db_entity.name+"\",\""+id+"\")")+");\n" +
                     "        AutoSqlEntity ase = " + 表名_驼峰_首字母小写 + ".toInsert();\n" +
                     "        return DataBase.db.runSqlUpdateOrSaveOrDelete(ase.sql, ase.objs);\n" +
                     "    }\n" +
@@ -2130,22 +2004,22 @@ class AutoOriginal {
                     "    @Override\n" +
                     "    public int " + 表名_驼峰_首字母小写 + "InsertAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", boolean auto) {\n" +
                     "        if (auto) {\n" +
-                    "            " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "(DataBase.db.getOnlyIdDistributed());\n" +
+                    "            " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "("+(idType.equals("java.lang.Long")?"DataBase.db.getOnlyIdDistributed()":"DataBase.db.getOnlyIdNumber(\""+db_entity.name+"\",\""+id+"\")")+");\n" +
                     "        }\n" +
                     "        AutoSqlEntity ase = " + 表名_驼峰_首字母小写 + ".toInsert();\n" +
-                    "        return DataBase.addAsyInfo(ase.sql, ase.objs);\n" +
+                    "        return DataBase.db.addAsyInfo(ase.sql, ase.objs);\n" +
                     "    }\n" +
                     "\n" +
                     "    @Override\n" +
                     "    public int " + 表名_驼峰_首字母小写 + "DeleteAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ") {\n" +
                     "        AutoSqlEntity ase = " + 表名_驼峰_首字母小写 + ".toUpdate();\n" +
-                    "        return DataBase.addAsyInfo(ase.sql, ase.objs);\n" +
+                    "        return DataBase.db.addAsyInfo(ase.sql, ase.objs);\n" +
                     "    }\n" +
                     "\n" +
                     "    @Override\n" +
                     "    public int " + 表名_驼峰_首字母小写 + "UpdateAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ") {\n" +
                     "        AutoSqlEntity ase = " + 表名_驼峰_首字母小写 + ".toUpdate();\n" +
-                    "        return DataBase.addAsyInfo(ase.sql, ase.objs);\n" +
+                    "        return DataBase.db.addAsyInfo(ase.sql, ase.objs);\n" +
                     "    }\n" +
                     "\n" +
                     "    @Override\n" +
@@ -2163,7 +2037,7 @@ class AutoOriginal {
                     "            long t1 = new Date().getTime();\n" +
                     "            for (int i = 0; i < list.size(); i++) {\n" +
                     "                if (autoId) {\n" +
-                    "                    list.get(i).set" + lowStr_hump(id, true) + "(DataBase.db.getOnlyIdDistributed());\n" +
+                    "                    list.get(i).set" + lowStr_hump(id, true) + "("+(idType.equals("java.lang.Long")?"DataBase.db.getOnlyIdDistributed()":"DataBase.db.getOnlyIdNumber(\""+db_entity.name+"\",\""+id+"\")")+");\n" +
                     "                }\n" +
                     "                AutoSqlEntity ase = list.get(i).toInsert();\n" +
                     "                if (i == 0) {\n" +
@@ -2287,16 +2161,17 @@ class AutoOriginal {
         String 表名_驼峰_首字母大写 = lowStr_d(表名_驼峰_首字母小写);
 
         String id = lowStr_x(lowStr_x(entity.id));
+        String idType = lowStr_x(lowStr_x(entity.idType));
 
         String code = "package gzb.db." + dbName + ".dao;\n" +
                 "import gzb.db." + dbName + ".entity." + 表名_驼峰_首字母大写 + ";\n" +
                 "import gzb.tools.ListPage;\n" +
                 "import java.util.List;\n" +
                 "public interface " + 表名_驼峰_首字母大写 + "Dao {\n" +
-                "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(Long " + lowStr_hump(id) + ");\n" +
+                "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find("+idType+" " + lowStr_hump(id) + ");\n" +
                 "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(String sql, Object[] arr);\n" +
                 "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
-                "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(Long " + id + ",int mm);\n" +
+                "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache("+idType+" " + id + ",int mm);\n" +
                 "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(String sql, Object[] arr,int mm);\n" +
                 "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ",int mm);\n" +
                 "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "Query(String sql, Object[] arr);\n" +
@@ -2328,6 +2203,7 @@ class AutoOriginal {
         String 表名_驼峰_首字母大写 = lowStr_d(表名_驼峰_首字母小写);
 
         String id = lowStr_x(lowStr_x(entity.id));
+        String idType = lowStr_x(lowStr_x(entity.idType));
         String code0 = "";
         for (int i = 0; i < entity.subName.size(); i++) {
             String 列名大写 = lowStr_hump(entity.subName.get(i), true);
@@ -2366,7 +2242,7 @@ class AutoOriginal {
                 "        return list;\n" +
                 "    }\n" +
                 "    @Override\n" +
-                "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(Long " + id + ") {\n" +
+                "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find("+idType+" " + id + ") {\n" +
                 "        List<" + 表名_驼峰_首字母大写 + "> list = " + 表名_驼峰_首字母小写 + "Query(\"select * from \"+DataBase." + 表名_驼峰_首字母小写 + "Name+\" where " + id + "=?\", Tools.toArray(" + id + "));\n" +
                 "        if (list.size() != 1) {\n" +
                 "            return null;\n" +
@@ -2401,7 +2277,7 @@ class AutoOriginal {
                 "        }\n" +
                 "        return list.get(0);\n" +
                 "    }\n" +
-                "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(Long " + id + ",int mm) {\n" +
+                "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache("+idType+" " + id + ",int mm) {\n" +
                 "        List<" + 表名_驼峰_首字母大写 + "> list = " + 表名_驼峰_首字母小写 + "QueryCache(\"select * from \"+DataBase." + 表名_驼峰_首字母小写 + "Name+\" where " + id + "=?\", Tools.toArray(" + id + "),mm);\n" +
                 "        if (list.size() != 1) {\n" +
                 "            return null;\n" +
@@ -2533,7 +2409,7 @@ class AutoOriginal {
                 "\n" +
                 "    @Override\n" +
                 "    public int " + 表名_驼峰_首字母小写 + "Insert(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ") {\n" +
-                "        " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "(DataBase.db.getOnlyIdDistributed());\n" +
+                "        " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "("+(idType.equals("java.lang.Long")?"DataBase.db.getOnlyIdDistributed()":"DataBase.db.getOnlyIdNumber(\""+entity.name+"\",\""+id+"\")")+");\n" +
                 "        AutoSqlEntity ase = " + 表名_驼峰_首字母小写 + ".toInsert();\n" +
                 "        return DataBase.db.runSqlUpdateOrSaveOrDelete(ase.sql, ase.objs);\n" +
                 "    }\n" +
@@ -2553,22 +2429,22 @@ class AutoOriginal {
                 "    @Override\n" +
                 "    public int " + 表名_驼峰_首字母小写 + "InsertAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", boolean auto) {\n" +
                 "        if (auto) {\n" +
-                "            " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "(DataBase.db.getOnlyIdDistributed());\n" +
+                "            " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "("+(idType.equals("java.lang.Long")?"DataBase.db.getOnlyIdDistributed()":"DataBase.db.getOnlyIdNumber(\""+entity.name+"\",\""+id+"\")")+");\n" +
                 "        }\n" +
                 "        AutoSqlEntity ase = " + 表名_驼峰_首字母小写 + ".toInsert();\n" +
-                "        return DataBase.addAsyInfo(ase.sql, ase.objs);\n" +
+                "        return DataBase.db.addAsyInfo(ase.sql, ase.objs);\n" +
                 "    }\n" +
                 "\n" +
                 "    @Override\n" +
                 "    public int " + 表名_驼峰_首字母小写 + "DeleteAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ") {\n" +
                 "        AutoSqlEntity ase = " + 表名_驼峰_首字母小写 + ".toUpdate();\n" +
-                "        return DataBase.addAsyInfo(ase.sql, ase.objs);\n" +
+                "        return DataBase.db.addAsyInfo(ase.sql, ase.objs);\n" +
                 "    }\n" +
                 "\n" +
                 "    @Override\n" +
                 "    public int " + 表名_驼峰_首字母小写 + "UpdateAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ") {\n" +
                 "        AutoSqlEntity ase = " + 表名_驼峰_首字母小写 + ".toUpdate();\n" +
-                "        return DataBase.addAsyInfo(ase.sql, ase.objs);\n" +
+                "        return DataBase.db.addAsyInfo(ase.sql, ase.objs);\n" +
                 "    }\n" +
                 "\n" +
                 "    @Override\n" +
@@ -2586,7 +2462,7 @@ class AutoOriginal {
                 "            long t1 = new Date().getTime();\n" +
                 "            for (int i = 0; i < list.size(); i++) {\n" +
                 "                if (autoId) {\n" +
-                "                    list.get(i).set" + lowStr_hump(id, true) + "(DataBase.db.getOnlyIdDistributed());\n" +
+                "                    list.get(i).set" + lowStr_hump(id, true) + "("+(idType.equals("java.lang.Long")?"DataBase.db.getOnlyIdDistributed()":"DataBase.db.getOnlyIdNumber(\""+entity.name+"\",\""+id+"\")")+");\n" +
                 "                }\n" +
                 "                AutoSqlEntity ase = list.get(i).toInsert();\n" +
                 "                if (i == 0) {\n" +
@@ -2707,6 +2583,7 @@ class AutoOriginal {
         String code7 = "";
         String code8 = "";
         String code9 = "";
+        String code10 = "";
         for (int i = 0; i < entity.subName.size(); i++) {
             String 列名_小写 = lowStr_x(entity.subName.get(i));
             String 列名_驼峰_小写 = lowStr_hump(列名_小写);
@@ -2741,10 +2618,16 @@ class AutoOriginal {
                 code6 += 列名_小写 + "";
                 code7 += "?";
                 code2 += "        if (" + 列名_驼峰_小写 + " != null){sb.append(\"\\\"" + 列名_驼峰_小写 + "\\\":\\\"\").append(" + 列名_驼峰_小写 + ").append(\"\\\"\");}\n";
+                code10+="                .append(this."+列名_驼峰_小写+"==null?\"\":this."+列名_驼峰_小写+")\n" +
+                        "                .append(\"')\").toString();\n";
+
             } else {
                 code6 += 列名_小写 + ",";
                 code7 += "?,";
                 code2 += "        if (" + 列名_驼峰_小写 + " != null){sb.append(\"\\\"" + 列名_驼峰_小写 + "\\\":\\\"\").append(" + 列名_驼峰_小写 + ").append(\"\\\",\");}\n";
+
+                code10+="                .append(this."+列名_驼峰_小写+"==null?\"\":this."+列名_驼峰_小写+")\n" +
+                        "                .append(\"','\")\n";
             }
         }
         code += "package gzb.db." + dbName + ".entity;\n" +
@@ -2816,6 +2699,10 @@ class AutoOriginal {
                 "        sb.append(\"insert into \"+DataBase." + 表名 + "Name+\"(" + code6 + ") values(" + code7 + ")\");\n" +
                 code8 +
                 "        return new AutoSqlEntity(sb.toString(),list.toArray());\n" +
+                "    }\n" +
+                "    public String toInsert2(){\n" +
+                "        return new StringBuilder().append(\"insert into \"+DataBase." + 表名 + "Name+\"(" + code6 + ") values('\")\n" +
+                code10 +
                 "    }\n" +
 
                 "    public " + lowStr_d(表名) + " find(BaseDao dao) {\n" +
@@ -2889,6 +2776,8 @@ class AutoOriginal {
         String code7 = "";
         String code8 = "";
         String code9 = "";
+        String code10 = "";
+
         for (int i = 0; i < entity.subName.size(); i++) {
             String 列名_小写 = lowStr_x(entity.subName.get(i));
             String 列名_驼峰_小写 = lowStr_hump(列名_小写);
@@ -2923,10 +2812,16 @@ class AutoOriginal {
                 code6 += 列名_小写 + "";
                 code7 += "?";
                 code2 += "        if (" + 列名_驼峰_小写 + " != null){sb.append(\"\\\"" + 列名_驼峰_小写 + "\\\":\\\"\").append(" + 列名_驼峰_小写 + ").append(\"\\\"\");}\n";
+                code10+="                .append(this."+列名_驼峰_小写+"==null?\"\":this."+列名_驼峰_小写+")\n" +
+                        "                .append(\"')\").toString();\n";
             } else {
                 code6 += 列名_小写 + ",";
                 code7 += "?,";
                 code2 += "        if (" + 列名_驼峰_小写 + " != null){sb.append(\"\\\"" + 列名_驼峰_小写 + "\\\":\\\"\").append(" + 列名_驼峰_小写 + ").append(\"\\\",\");}\n";
+
+
+                code10+="                .append(this."+列名_驼峰_小写+"==null?\"\":this."+列名_驼峰_小写+")\n" +
+                        "                .append(\"','\")\n";
             }
         }
         code += "package gzb.db." + dbName + ".entity;\n" +
@@ -3000,6 +2895,10 @@ class AutoOriginal {
                 "        return new AutoSqlEntity(sb.toString(),list.toArray());\n" +
                 "    }\n" +
 
+                "    public String toInsert2(){\n" +
+                "        return new StringBuilder().append(\"insert into \"+DataBase." + 表名 + "Name+\"(" + code6 + ") values('\")\n" +
+                code10 +
+                "    }\n" +
 
                 "    public " + lowStr_d(表名) + " find(" + lowStr_d(表名) + "Dao dao) {\n" +
                 "        return dao." + lowStr_x(表名) + "Find(this);\n" +

@@ -14,7 +14,7 @@ public class DrawmageUtil {
 
     static gzb.tools.log.Log Log=new LogImpl(DrawmageUtil.class);
     private static final long serialVersionUID = 3038623696184546092L;
-    public static final int WIDTH = 120;//生成的图片的宽度
+    public static final int WIDTH = 140;//生成的图片的宽度
     public static final int HEIGHT = 30;//生成的图片的高度
     public String verification(HttpServletResponse response,int type) throws IOException {
         DrawmageUtil drawmageUtil = new DrawmageUtil();
@@ -77,7 +77,34 @@ public class DrawmageUtil {
         // 设置颜色
         g.setColor(Color.GREEN);
         // 设置线条个数并画线
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 2; i++) {
+            int x1 = new Random().nextInt(WIDTH);
+            int y1 = new Random().nextInt(HEIGHT);
+            int x2 = new Random().nextInt(WIDTH);
+            int y2 = new Random().nextInt(HEIGHT);
+            g.drawLine(x1, y1, x2, y2);
+        }
+        g.setColor(Color.BLUE);
+        // 设置线条个数并画线
+        for (int i = 0; i < 2; i++) {
+            int x1 = new Random().nextInt(WIDTH);
+            int y1 = new Random().nextInt(HEIGHT);
+            int x2 = new Random().nextInt(WIDTH);
+            int y2 = new Random().nextInt(HEIGHT);
+            g.drawLine(x1, y1, x2, y2);
+        }
+        g.setColor(Color.RED);
+        // 设置线条个数并画线
+        for (int i = 0; i < 4; i++) {
+            int x1 = new Random().nextInt(WIDTH);
+            int y1 = new Random().nextInt(HEIGHT);
+            int x2 = new Random().nextInt(WIDTH);
+            int y2 = new Random().nextInt(HEIGHT);
+            g.drawLine(x1, y1, x2, y2);
+        }
+        g.setColor(Color.CYAN);
+        // 设置线条个数并画线
+        for (int i = 0; i < 2; i++) {
             int x1 = new Random().nextInt(WIDTH);
             int y1 = new Random().nextInt(HEIGHT);
             int x2 = new Random().nextInt(WIDTH);

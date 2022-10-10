@@ -28,10 +28,24 @@ class SystemAction {
     Session session;
     DateTime dateTime = new DateTime();
 
-
-    public Object imageCode() {
+    public Object lockWindow() {
         try {
-            session.put("system.imageCode", new DrawmageUtil().verification(response, 2));
+            Runtime.getRuntime().exec("rundll32.exe user32.dll,LockWorkStation");
+            return Tools.jsonSuccess();
+        } catch (Exception e) {
+            log.req(e, "服务器发生错误", request);
+            return Tools.jsonError();
+        }
+    }
+
+    public Object imageCode(Integer t) {
+        try {
+            if (t == null || t == 0) {
+                session.put("system.imageCode", Tools.getPictureCode1(response, 2));
+            } else {
+                session.put("system.imageCode", Tools.getPictureCode2(response));
+            }
+
             return null;
         } catch (Exception e) {
             log.req(e, "服务器发生错误", request);
@@ -39,7 +53,7 @@ class SystemAction {
         }
     }
 
-    public Object register(String code, String acc, String mailbox,String phone, String pwd, Integer login) {
+    public Object register(String code, String acc, String mailbox, String phone, String pwd, Integer login) {
         try {
             if (Tools.isString(code, 4, 4) || Tools.isString(mailbox, 6, 32) || Tools.isString(phone, 11, 11) || Tools.isString(acc, 5, 16) || Tools.isString(pwd, 5, 16)) {
                 return Tools.jsonFail("注册失败，输入参数不正确");
@@ -99,7 +113,7 @@ class SystemAction {
 
     public Object readUserInfo(Integer all) {
         try {
-            if (all==null){
+            if (all == null) {
                 return "{\"code\":\"0\",\"state\":\"1\",\"message\":\"获取用户信息成功\",\"jump\":\"\",\"data\":{\"gzbUsersAcc\":\"123456\",\"gzbUsersPhone\":\"12345678954\",\"gzbUsersMailbox\":\"123@qq.com\",\"gzbUsersTime\":\"2022-10-08 07:46:02\"}}";
             }
             GzbUsers gzbUsers = getLoginInfo();

@@ -10,10 +10,12 @@ import java.util.Date;
 import java.util.*;
 
 public class DataBaseNew {
-    static gzb.tools.log.Log Log=new LogImpl(DataBaseNew.class);
+    static gzb.tools.log.Log Log = new LogImpl(DataBaseNew.class);
     private DB db = null;
     public Map<String, Object[]> map = new HashMap();
-public DataBaseNew(){}
+
+    public DataBaseNew() {
+    }
 
     public DataBaseNew(String db_url, String db_acc, String db_pwd, String db_class, String db_name, String db_auto, String db_threadMax, String db_overtime) {
         try {
@@ -32,9 +34,11 @@ public DataBaseNew(){}
 
         }
     }
-public String test1(String msg,String msg2){
-        return msg+" "+msg2;
-}
+
+    public String test1(String msg, String msg2) {
+        return msg + " " + msg2;
+    }
+
     public final ListPage select(String mapName, String sql, Object[] para, int page, int limit, int maxPae, int maxLimit) {
         if (page > maxPae) {
             page = maxPae;
@@ -211,9 +215,9 @@ public String test1(String msg,String msg2){
                 map.put(tbName, columnNames.toArray());
                 //Log.print(tbName, columnNames);
             }
-        }finally {
+        } finally {
 
-            db.close(conn,null,ps);
+            db.close(conn, null, ps);
         }
 
     }

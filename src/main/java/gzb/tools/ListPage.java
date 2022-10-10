@@ -2,12 +2,14 @@ package gzb.tools;
 
 import java.util.ArrayList;
 import java.util.List;
-
-public class ListPage { 
+/**
+ * 分页工具类
+ * */
+public class ListPage<T> {
 	private int count;
 	private int page;
 	private int limit;
-	private List<?>list;
+	private List<T>list;
 	public int getCount() {
 		return count;
 	}
@@ -26,10 +28,10 @@ public class ListPage {
 	public void setLimit(int limit) {
 		this.limit = limit;
 	}
-	public List<?> getList() {
+	public List<T> getList() {
 		return list;
 	}
-	public void setList(List<?> list) {
+	public void setList(List<T> list) {
 		this.list = list;
 	} 
 	@Override
@@ -39,24 +41,14 @@ public class ListPage {
 	public String toJson() { 
 		return toJson("ok");
 	}
-	public String toJson(String msg){
-		String json="{"
-				+ "\"state\":\"1\","
-				+ "\"code\":\"0\","
-				+ "\"message\":\""+msg+"\","
-				+ "\"page\":\""+page+"\","
-				+ "\"limit\":\""+limit+"\","
-				+ "\"count\":\""+count+"\","
-				+ "\"data\":"+list.toString()+""
-				+ "}";
-		json=json.replaceAll("\r\n", "\\\\r\\\\n")
-				.replaceAll("\r", "\\\\r")
-				.replaceAll("\n", "\\\\n")
-				.replaceAll("\t", "\\\\t");
-		return json;
+	public String toJson(String message){
+		return Tools.json(1, message, list, null,page,limit,count,null);
 	}
-	public void limitList(List<?> list,int page, int limit) {
-		List<Object> list_ret = new ArrayList<>();
+	public String toJson(Object state,Object message){
+		return Tools.json(state, message, list, null,page,limit,count,null);
+	}
+	public void limitList(List<T> list,int page, int limit) {
+		List<T> list_ret = new ArrayList<>();
 		int k=(page-1) * limit;
 		for (int i = k; i < list.size(); i++) {
 			list_ret.add(list.get(i));

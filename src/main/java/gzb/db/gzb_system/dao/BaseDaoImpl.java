@@ -4,10 +4,12 @@ import gzb.db.gzb_system.entity.ContentManager;
 import gzb.db.gzb_system.entity.FileManager;
 import gzb.db.gzb_system.entity.GzbApi;
 import gzb.db.gzb_system.entity.GzbCache;
+import gzb.db.gzb_system.entity.GzbGroup;
 import gzb.db.gzb_system.entity.GzbRight;
 import gzb.db.gzb_system.entity.GzbUsers;
 import gzb.db.gzb_system.entity.Gzbtest;
 import gzb.db.gzb_system.entity.Test;
+import gzb.db.gzb_system.entity.Users;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Date;
@@ -69,6 +71,18 @@ public class BaseDaoImpl implements BaseDao {
         }
         return list;
     }
+    public final List<GzbGroup> gzbGroupToList(String json) {
+        List<GzbGroup> list = new ArrayList<>();
+        if (json.length()<3){
+            return list;
+        }
+        json = json.substring(2, json.length() - 2);
+        String[] ss1 = json.replaceAll("}, \\{", "},{").split("},\\{");
+        for (int i = 0; i < ss1.length; i++) {
+            list.add(new GzbGroup("{" + ss1[i] + "}"));
+        }
+        return list;
+    }
     public final List<GzbRight> gzbRightToList(String json) {
         List<GzbRight> list = new ArrayList<>();
         if (json.length()<3){
@@ -114,6 +128,18 @@ public class BaseDaoImpl implements BaseDao {
         String[] ss1 = json.replaceAll("}, \\{", "},{").split("},\\{");
         for (int i = 0; i < ss1.length; i++) {
             list.add(new Test("{" + ss1[i] + "}"));
+        }
+        return list;
+    }
+    public final List<Users> usersToList(String json) {
+        List<Users> list = new ArrayList<>();
+        if (json.length()<3){
+            return list;
+        }
+        json = json.substring(2, json.length() - 2);
+        String[] ss1 = json.replaceAll("}, \\{", "},{").split("},\\{");
+        for (int i = 0; i < ss1.length; i++) {
+            list.add(new Users("{" + ss1[i] + "}"));
         }
         return list;
     }
@@ -441,19 +467,19 @@ public class BaseDaoImpl implements BaseDao {
             contentManager.setContentManagerId(DataBase.db.getOnlyIdDistributed());
         }
         AutoSqlEntity ase = contentManager.toInsert();
-        return DataBase.addAsyInfo(ase.sql, ase.objs);
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
     }
 
     @Override
     public int contentManagerDeleteAsy(ContentManager contentManager) {
         AutoSqlEntity ase = contentManager.toUpdate();
-        return DataBase.addAsyInfo(ase.sql, ase.objs);
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
     }
 
     @Override
     public int contentManagerUpdateAsy(ContentManager contentManager) {
         AutoSqlEntity ase = contentManager.toUpdate();
-        return DataBase.addAsyInfo(ase.sql, ase.objs);
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
     }
 
     @Override
@@ -792,19 +818,19 @@ public class BaseDaoImpl implements BaseDao {
             fileManager.setFileManagerId(DataBase.db.getOnlyIdDistributed());
         }
         AutoSqlEntity ase = fileManager.toInsert();
-        return DataBase.addAsyInfo(ase.sql, ase.objs);
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
     }
 
     @Override
     public int fileManagerDeleteAsy(FileManager fileManager) {
         AutoSqlEntity ase = fileManager.toUpdate();
-        return DataBase.addAsyInfo(ase.sql, ase.objs);
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
     }
 
     @Override
     public int fileManagerUpdateAsy(FileManager fileManager) {
         AutoSqlEntity ase = fileManager.toUpdate();
-        return DataBase.addAsyInfo(ase.sql, ase.objs);
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
     }
 
     @Override
@@ -1125,19 +1151,19 @@ public class BaseDaoImpl implements BaseDao {
             gzbApi.setGzbApiId(DataBase.db.getOnlyIdDistributed());
         }
         AutoSqlEntity ase = gzbApi.toInsert();
-        return DataBase.addAsyInfo(ase.sql, ase.objs);
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
     }
 
     @Override
     public int gzbApiDeleteAsy(GzbApi gzbApi) {
         AutoSqlEntity ase = gzbApi.toUpdate();
-        return DataBase.addAsyInfo(ase.sql, ase.objs);
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
     }
 
     @Override
     public int gzbApiUpdateAsy(GzbApi gzbApi) {
         AutoSqlEntity ase = gzbApi.toUpdate();
-        return DataBase.addAsyInfo(ase.sql, ase.objs);
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
     }
 
     @Override
@@ -1464,19 +1490,19 @@ public class BaseDaoImpl implements BaseDao {
             gzbCache.setGzbCacheId(DataBase.db.getOnlyIdDistributed());
         }
         AutoSqlEntity ase = gzbCache.toInsert();
-        return DataBase.addAsyInfo(ase.sql, ase.objs);
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
     }
 
     @Override
     public int gzbCacheDeleteAsy(GzbCache gzbCache) {
         AutoSqlEntity ase = gzbCache.toUpdate();
-        return DataBase.addAsyInfo(ase.sql, ase.objs);
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
     }
 
     @Override
     public int gzbCacheUpdateAsy(GzbCache gzbCache) {
         AutoSqlEntity ase = gzbCache.toUpdate();
-        return DataBase.addAsyInfo(ase.sql, ase.objs);
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
     }
 
     @Override
@@ -1540,6 +1566,333 @@ public class BaseDaoImpl implements BaseDao {
 
     @Override
     public int gzbCacheBatch(String sql, List<Object[]> list) {
+        Connection conn = null;
+        ResultSet rs = null;
+        PreparedStatement ps = null;
+        StringBuilder sb = new StringBuilder();
+        try {
+            long t1 = new Date().getTime();
+            for (int i = 0; i < list.size(); i++) {
+                if (i == 0) {
+                    sb.append("Batch:").append(sql).append(";参数:");
+                    conn = DataBase.db.getConnection();
+                    conn.setAutoCommit(false);
+                    ps = conn.prepareStatement(sql);
+                }
+                for (int i1 = 0; i1 < list.get(i).length; i1++) {
+                    ps.setObject(i1 + 1, list.get(i)[i1]);
+                }
+                sb.append(DataBase.db.getKey(sql, list.get(i)));
+                ps.addBatch();
+            }
+            long t2 = new Date().getTime();
+            sb.append(";组装耗时:");
+            sb.append(t2 - t1);
+            sb.append("毫秒");
+            t1 = new Date().getTime();
+            int[] res = ps.executeBatch();
+            conn.commit();
+            t2 = new Date().getTime();
+            sb.append(";执行耗时:");
+            sb.append(t2 - t1);
+            sb.append("毫秒");
+            Log.sql(sb.toString());
+            return res.length;
+        } catch (SQLIntegrityConstraintViolationException e) {
+            Log.e(e, "ID冲突" + sb.toString());
+            return -1;
+        } catch (Exception e) {
+            Log.e(e, sb.toString());
+            return -1;
+        } finally {
+            try {
+                conn.setAutoCommit(true);
+                DataBase.db.close(conn, rs, ps);
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+        }
+    }
+    @Override
+    public GzbGroup gzbGroupFind(Long gzb_group_id) {
+        List<GzbGroup> list = gzbGroupQuery("select * from "+DataBase.gzbGroupName+" where gzb_group_id=?", Tools.toArray(gzb_group_id));
+        if (list.size() != 1) {
+            return null;
+        }
+        return list.get(0);
+    }
+    @Override
+    public GzbGroup gzbGroupFind(String sql, Object[] arr) {
+        List<GzbGroup> list = gzbGroupQuery(sql, arr);
+        if (list.size() != 1) {
+            return null;
+        }
+        return list.get(0);
+    }
+    @Override
+    public GzbGroup gzbGroupFind(GzbGroup gzbGroup) {
+        AutoSqlEntity ase = gzbGroup.toSelect();
+        List<GzbGroup> list = gzbGroupQuery(ase.sql, ase.objs);
+        if (list.size() != 1) {
+            return null;
+        }
+        return list.get(0);
+    }
+    @Override
+    public GzbGroup gzbGroupFindCache(GzbGroup gzbGroup,int mm) {
+        AutoSqlEntity ase = gzbGroup.toSelect();
+        List<GzbGroup> list = gzbGroupQueryCache(ase.sql, ase.objs,mm);
+        if (list.size() != 1) {
+            return null;
+        }
+        return list.get(0);
+    }
+    public GzbGroup gzbGroupFindCache(Long gzb_group_id,int mm) {
+        List<GzbGroup> list = gzbGroupQueryCache("select * from "+DataBase.gzbGroupName+" where gzb_group_id=?", Tools.toArray(gzb_group_id),mm);
+        if (list.size() != 1) {
+            return null;
+        }
+        return list.get(0);
+    }
+    @Override
+    public GzbGroup gzbGroupFindCache(String sql, Object[] arr,int mm) {
+        List<GzbGroup> list = gzbGroupQueryCache(sql, arr,mm);
+        if (list.size() != 1) {
+            return null;
+        }
+        return list.get(0);
+    }
+    @Override
+    public List<GzbGroup> gzbGroupQuery(String sql, Object[] arr) {
+        Connection conn = null;
+        ResultSet rs = null;
+        PreparedStatement ps = null;
+        if (arr == null) {
+            arr = Tools.toArray();
+        }
+        List<GzbGroup> list = new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
+        sb.append(sql).append(";参数:");
+        try {
+            conn = DataBase.db.getConnection();
+            ps = conn.prepareStatement(sql);
+            GzbGroup en;
+            String temp = "";
+            for (int i = 0; i < arr.length; i++) {
+                sb.append(arr[i]).append(",");
+                ps.setObject(i + 1, arr[i].toString());
+            }
+            long t1 = new Date().getTime();
+            rs = ps.executeQuery();
+            long t2 = new Date().getTime();
+            sb.append(";查询耗时:").append(t2 - t1).append("毫秒");
+            t1 = new Date().getTime();
+            String a = "," + Tools.textMid(sql, "select ", " from", 1).replaceAll(" ", "") + ",";
+            while (rs.next()) {
+                en = new GzbGroup();
+                if (a.equals(",*,") || a.indexOf(",gzbGroupId,") > -1 || a.indexOf(",gzb_group_id,") > -1) {
+                    temp = rs.getString("gzb_group_id");
+                    if (temp != null) {
+                        en.setGzbGroupId(java.lang.Long.valueOf(temp));
+                    }
+                }
+                if (a.equals(",*,") || a.indexOf(",gzbGroupName,") > -1 || a.indexOf(",gzb_group_name,") > -1) {
+                    temp = rs.getString("gzb_group_name");
+                    if (temp != null) {
+                        en.setGzbGroupName(java.lang.String.valueOf(temp));
+                    }
+                }
+                if (a.equals(",*,") || a.indexOf(",gzbGroupState,") > -1 || a.indexOf(",gzb_group_state,") > -1) {
+                    temp = rs.getString("gzb_group_state");
+                    if (temp != null) {
+                        en.setGzbGroupState(java.lang.String.valueOf(temp));
+                    }
+                }
+                list.add(en);
+            }
+            t2 = new Date().getTime();
+            sb.append(";组装对象耗时:").append(t2 - t1).append("毫秒");
+            Log.sql(sb.toString());
+        } catch (Exception e) {
+            Log.e(e, sb.toString());
+        } finally {
+            DataBase.db.close(conn, rs, ps);
+        }
+        return list;
+    }
+
+    @Override
+    public List<GzbGroup> gzbGroupQuery(GzbGroup gzbGroup) {
+        AutoSqlEntity ase = gzbGroup.toSelect();
+        return gzbGroupQuery(ase.sql, ase.objs);
+    }
+
+    @Override
+    public ListPage gzbGroupQuery(String sql, Object[] arr, int page, int limit) {
+        ListPage listPage = new ListPage();
+        List<GzbGroup> list = gzbGroupQuery(sql, arr);
+        listPage.limitList(list, page, limit);
+        return listPage;
+    }
+
+    @Override
+    public ListPage gzbGroupQuery(GzbGroup gzbGroup, int page, int limit, int maxPage, int maxLimit) {
+        limit=limit>maxLimit ? maxLimit : limit;
+        page=page>maxPage ? maxPage : page;
+        ListPage listPage = new ListPage();
+        AutoSqlEntity ase = gzbGroup.toSelect();
+        List<GzbGroup> list = gzbGroupQuery(ase.sql + " limit "+(maxPage*limit), ase.objs);
+        listPage.limitList(list, page, limit);
+        return listPage;
+    }
+
+    @Override
+    public List<GzbGroup> gzbGroupQueryCache(String sql, Object[] arr, int mm) {
+        List<GzbGroup> list = new ArrayList<>();
+        String key = DataBase.db.getKey(sql, arr);
+        String str = Cache.gzbCache.get(key);
+        if (str == null) {
+            Log.sql("Miss:" + key);
+            list = gzbGroupQuery(sql, arr);
+            Cache.gzbCache.set(key, list.toString(), mm);
+        } else {
+            Log.sql("Hit:" + key);
+            list = gzbGroupToList(str);
+        }
+        return list;
+    }
+    @Override
+    public List<GzbGroup> gzbGroupQueryCache(GzbGroup gzbGroup, int mm) {
+        AutoSqlEntity ase = gzbGroup.toSelect();
+        return gzbGroupQueryCache(ase.sql, ase.objs, mm);
+    }
+
+    @Override
+    public ListPage gzbGroupQueryCache(String sql, Object[] arr, int page, int limit, int mm) {
+        ListPage listPage = new ListPage();
+        List<GzbGroup> list = gzbGroupQueryCache(sql, arr, mm);
+        listPage.limitList(list, page, limit);
+        return listPage;
+    }
+
+    @Override
+    public ListPage gzbGroupQueryCache(GzbGroup gzbGroup, int page, int limit, int maxPage, int maxLimit, int mm) {
+        limit=limit>maxLimit ? maxLimit : limit;
+        page=page > maxPage ? maxPage : page;
+        ListPage listPage = new ListPage();
+        AutoSqlEntity ase = gzbGroup.toSelect();
+        List<GzbGroup> list = gzbGroupQueryCache(ase.sql+ " limit "+(maxPage*limit), ase.objs, mm);
+        listPage.limitList(list, page, limit);
+        return listPage;
+    }
+
+    @Override
+    public int gzbGroupDelete(GzbGroup gzbGroup) {
+        AutoSqlEntity ase = gzbGroup.toDelete();
+        return DataBase.db.runSqlUpdateOrSaveOrDelete(ase.sql, ase.objs);
+    }
+
+    @Override
+    public int gzbGroupInsert(GzbGroup gzbGroup) {
+        gzbGroup.setGzbGroupId(DataBase.db.getOnlyIdDistributed());
+        AutoSqlEntity ase = gzbGroup.toInsert();
+        return DataBase.db.runSqlUpdateOrSaveOrDelete(ase.sql, ase.objs);
+    }
+
+    @Override
+    public int gzbGroupUpdate(GzbGroup gzbGroup) {
+        AutoSqlEntity ase = gzbGroup.toUpdate();
+        return DataBase.db.runSqlUpdateOrSaveOrDelete(ase.sql, ase.objs);
+    }
+
+
+    @Override
+    public int gzbGroupInsertAsy(GzbGroup gzbGroup) {
+        return gzbGroupInsertAsy(gzbGroup, true);
+    }
+
+    @Override
+    public int gzbGroupInsertAsy(GzbGroup gzbGroup, boolean auto) {
+        if (auto) {
+            gzbGroup.setGzbGroupId(DataBase.db.getOnlyIdDistributed());
+        }
+        AutoSqlEntity ase = gzbGroup.toInsert();
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
+    }
+
+    @Override
+    public int gzbGroupDeleteAsy(GzbGroup gzbGroup) {
+        AutoSqlEntity ase = gzbGroup.toUpdate();
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
+    }
+
+    @Override
+    public int gzbGroupUpdateAsy(GzbGroup gzbGroup) {
+        AutoSqlEntity ase = gzbGroup.toUpdate();
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
+    }
+
+    @Override
+    public int gzbGroupBatch(List<GzbGroup> list) {
+        return gzbGroupBatch(list, true);
+    }
+
+    @Override
+    public int gzbGroupBatch(List<GzbGroup> list, boolean autoId) {
+        Connection conn = null;
+        ResultSet rs = null;
+        PreparedStatement ps = null;
+        StringBuilder sb = new StringBuilder();
+        try {
+            long t1 = new Date().getTime();
+            for (int i = 0; i < list.size(); i++) {
+                if (autoId) {
+                    list.get(i).setGzbGroupId(DataBase.db.getOnlyIdDistributed());
+                }
+                AutoSqlEntity ase = list.get(i).toInsert();
+                if (i == 0) {
+                    sb.append("Batch:").append(ase.sql).append(";参数:");
+                    conn = DataBase.db.getConnection();
+                    conn.setAutoCommit(false);
+                    ps = conn.prepareStatement(ase.sql);
+                }
+                for (int i1 = 0; i1 < ase.objs.length; i1++) {
+                    ps.setObject(i1 + 1, ase.objs[i1]);
+                }
+                sb.append(DataBase.db.getKey(ase.sql, ase.objs));
+                ps.addBatch();
+            }
+            long t2 = new Date().getTime();
+            sb.append(";组装耗时:");
+            sb.append(t2 - t1);
+            sb.append("毫秒");
+            t1 = new Date().getTime();
+            int[] res = ps.executeBatch();
+            conn.commit();
+            t2 = new Date().getTime();
+            sb.append(";执行耗时:");
+            sb.append(t2 - t1);
+            sb.append("毫秒");
+            Log.sql(sb.toString());
+            return res.length;
+        } catch (SQLIntegrityConstraintViolationException e) {
+            Log.e(e, "ID冲突" + sb.toString());
+            return -1;
+        } catch (Exception e) {
+            Log.e(e, sb.toString());
+            return -1;
+        } finally {
+            try {
+                conn.setAutoCommit(true);
+                DataBase.db.close(conn, rs, ps);
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public int gzbGroupBatch(String sql, List<Object[]> list) {
         Connection conn = null;
         ResultSet rs = null;
         PreparedStatement ps = null;
@@ -1670,10 +2023,10 @@ public class BaseDaoImpl implements BaseDao {
                         en.setGzbRightId(java.lang.Long.valueOf(temp));
                     }
                 }
-                if (a.equals(",*,") || a.indexOf(",gzbRightUsersId,") > -1 || a.indexOf(",gzb_right_users_id,") > -1) {
-                    temp = rs.getString("gzb_right_users_id");
+                if (a.equals(",*,") || a.indexOf(",gzbRightGroupId,") > -1 || a.indexOf(",gzb_right_group_id,") > -1) {
+                    temp = rs.getString("gzb_right_group_id");
                     if (temp != null) {
-                        en.setGzbRightUsersId(java.lang.Long.valueOf(temp));
+                        en.setGzbRightGroupId(java.lang.Long.valueOf(temp));
                     }
                 }
                 if (a.equals(",*,") || a.indexOf(",gzbRightApiId,") > -1 || a.indexOf(",gzb_right_api_id,") > -1) {
@@ -1791,19 +2144,19 @@ public class BaseDaoImpl implements BaseDao {
             gzbRight.setGzbRightId(DataBase.db.getOnlyIdDistributed());
         }
         AutoSqlEntity ase = gzbRight.toInsert();
-        return DataBase.addAsyInfo(ase.sql, ase.objs);
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
     }
 
     @Override
     public int gzbRightDeleteAsy(GzbRight gzbRight) {
         AutoSqlEntity ase = gzbRight.toUpdate();
-        return DataBase.addAsyInfo(ase.sql, ase.objs);
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
     }
 
     @Override
     public int gzbRightUpdateAsy(GzbRight gzbRight) {
         AutoSqlEntity ase = gzbRight.toUpdate();
-        return DataBase.addAsyInfo(ase.sql, ase.objs);
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
     }
 
     @Override
@@ -2142,19 +2495,19 @@ public class BaseDaoImpl implements BaseDao {
             gzbUsers.setGzbUsersId(DataBase.db.getOnlyIdDistributed());
         }
         AutoSqlEntity ase = gzbUsers.toInsert();
-        return DataBase.addAsyInfo(ase.sql, ase.objs);
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
     }
 
     @Override
     public int gzbUsersDeleteAsy(GzbUsers gzbUsers) {
         AutoSqlEntity ase = gzbUsers.toUpdate();
-        return DataBase.addAsyInfo(ase.sql, ase.objs);
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
     }
 
     @Override
     public int gzbUsersUpdateAsy(GzbUsers gzbUsers) {
         AutoSqlEntity ase = gzbUsers.toUpdate();
-        return DataBase.addAsyInfo(ase.sql, ase.objs);
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
     }
 
     @Override
@@ -2469,19 +2822,19 @@ public class BaseDaoImpl implements BaseDao {
             gzbtest.setGzbTestId(DataBase.db.getOnlyIdDistributed());
         }
         AutoSqlEntity ase = gzbtest.toInsert();
-        return DataBase.addAsyInfo(ase.sql, ase.objs);
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
     }
 
     @Override
     public int gzbtestDeleteAsy(Gzbtest gzbtest) {
         AutoSqlEntity ase = gzbtest.toUpdate();
-        return DataBase.addAsyInfo(ase.sql, ase.objs);
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
     }
 
     @Override
     public int gzbtestUpdateAsy(Gzbtest gzbtest) {
         AutoSqlEntity ase = gzbtest.toUpdate();
-        return DataBase.addAsyInfo(ase.sql, ase.objs);
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
     }
 
     @Override
@@ -2796,19 +3149,19 @@ public class BaseDaoImpl implements BaseDao {
             test.setTestId(DataBase.db.getOnlyIdDistributed());
         }
         AutoSqlEntity ase = test.toInsert();
-        return DataBase.addAsyInfo(ase.sql, ase.objs);
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
     }
 
     @Override
     public int testDeleteAsy(Test test) {
         AutoSqlEntity ase = test.toUpdate();
-        return DataBase.addAsyInfo(ase.sql, ase.objs);
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
     }
 
     @Override
     public int testUpdateAsy(Test test) {
         AutoSqlEntity ase = test.toUpdate();
-        return DataBase.addAsyInfo(ase.sql, ase.objs);
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
     }
 
     @Override
@@ -2872,6 +3225,351 @@ public class BaseDaoImpl implements BaseDao {
 
     @Override
     public int testBatch(String sql, List<Object[]> list) {
+        Connection conn = null;
+        ResultSet rs = null;
+        PreparedStatement ps = null;
+        StringBuilder sb = new StringBuilder();
+        try {
+            long t1 = new Date().getTime();
+            for (int i = 0; i < list.size(); i++) {
+                if (i == 0) {
+                    sb.append("Batch:").append(sql).append(";参数:");
+                    conn = DataBase.db.getConnection();
+                    conn.setAutoCommit(false);
+                    ps = conn.prepareStatement(sql);
+                }
+                for (int i1 = 0; i1 < list.get(i).length; i1++) {
+                    ps.setObject(i1 + 1, list.get(i)[i1]);
+                }
+                sb.append(DataBase.db.getKey(sql, list.get(i)));
+                ps.addBatch();
+            }
+            long t2 = new Date().getTime();
+            sb.append(";组装耗时:");
+            sb.append(t2 - t1);
+            sb.append("毫秒");
+            t1 = new Date().getTime();
+            int[] res = ps.executeBatch();
+            conn.commit();
+            t2 = new Date().getTime();
+            sb.append(";执行耗时:");
+            sb.append(t2 - t1);
+            sb.append("毫秒");
+            Log.sql(sb.toString());
+            return res.length;
+        } catch (SQLIntegrityConstraintViolationException e) {
+            Log.e(e, "ID冲突" + sb.toString());
+            return -1;
+        } catch (Exception e) {
+            Log.e(e, sb.toString());
+            return -1;
+        } finally {
+            try {
+                conn.setAutoCommit(true);
+                DataBase.db.close(conn, rs, ps);
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+        }
+    }
+    @Override
+    public Users usersFind(Long users_id) {
+        List<Users> list = usersQuery("select * from "+DataBase.usersName+" where users_id=?", Tools.toArray(users_id));
+        if (list.size() != 1) {
+            return null;
+        }
+        return list.get(0);
+    }
+    @Override
+    public Users usersFind(String sql, Object[] arr) {
+        List<Users> list = usersQuery(sql, arr);
+        if (list.size() != 1) {
+            return null;
+        }
+        return list.get(0);
+    }
+    @Override
+    public Users usersFind(Users users) {
+        AutoSqlEntity ase = users.toSelect();
+        List<Users> list = usersQuery(ase.sql, ase.objs);
+        if (list.size() != 1) {
+            return null;
+        }
+        return list.get(0);
+    }
+    @Override
+    public Users usersFindCache(Users users,int mm) {
+        AutoSqlEntity ase = users.toSelect();
+        List<Users> list = usersQueryCache(ase.sql, ase.objs,mm);
+        if (list.size() != 1) {
+            return null;
+        }
+        return list.get(0);
+    }
+    public Users usersFindCache(Long users_id,int mm) {
+        List<Users> list = usersQueryCache("select * from "+DataBase.usersName+" where users_id=?", Tools.toArray(users_id),mm);
+        if (list.size() != 1) {
+            return null;
+        }
+        return list.get(0);
+    }
+    @Override
+    public Users usersFindCache(String sql, Object[] arr,int mm) {
+        List<Users> list = usersQueryCache(sql, arr,mm);
+        if (list.size() != 1) {
+            return null;
+        }
+        return list.get(0);
+    }
+    @Override
+    public List<Users> usersQuery(String sql, Object[] arr) {
+        Connection conn = null;
+        ResultSet rs = null;
+        PreparedStatement ps = null;
+        if (arr == null) {
+            arr = Tools.toArray();
+        }
+        List<Users> list = new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
+        sb.append(sql).append(";参数:");
+        try {
+            conn = DataBase.db.getConnection();
+            ps = conn.prepareStatement(sql);
+            Users en;
+            String temp = "";
+            for (int i = 0; i < arr.length; i++) {
+                sb.append(arr[i]).append(",");
+                ps.setObject(i + 1, arr[i].toString());
+            }
+            long t1 = new Date().getTime();
+            rs = ps.executeQuery();
+            long t2 = new Date().getTime();
+            sb.append(";查询耗时:").append(t2 - t1).append("毫秒");
+            t1 = new Date().getTime();
+            String a = "," + Tools.textMid(sql, "select ", " from", 1).replaceAll(" ", "") + ",";
+            while (rs.next()) {
+                en = new Users();
+                if (a.equals(",*,") || a.indexOf(",usersId,") > -1 || a.indexOf(",users_id,") > -1) {
+                    temp = rs.getString("users_id");
+                    if (temp != null) {
+                        en.setUsersId(java.lang.Long.valueOf(temp));
+                    }
+                }
+                if (a.equals(",*,") || a.indexOf(",usersAcc,") > -1 || a.indexOf(",users_acc,") > -1) {
+                    temp = rs.getString("users_acc");
+                    if (temp != null) {
+                        en.setUsersAcc(java.lang.String.valueOf(temp));
+                    }
+                }
+                if (a.equals(",*,") || a.indexOf(",usersPwd,") > -1 || a.indexOf(",users_pwd,") > -1) {
+                    temp = rs.getString("users_pwd");
+                    if (temp != null) {
+                        en.setUsersPwd(java.lang.String.valueOf(temp));
+                    }
+                }
+                if (a.equals(",*,") || a.indexOf(",usersState,") > -1 || a.indexOf(",users_state,") > -1) {
+                    temp = rs.getString("users_state");
+                    if (temp != null) {
+                        en.setUsersState(java.lang.String.valueOf(temp));
+                    }
+                }
+                if (a.equals(",*,") || a.indexOf(",usersRegTime,") > -1 || a.indexOf(",users_reg_time,") > -1) {
+                    temp = rs.getString("users_reg_time");
+                    if (temp != null) {
+                        en.setUsersRegTime(java.lang.String.valueOf(temp));
+                    }
+                }
+                if (a.equals(",*,") || a.indexOf(",usersRegIp,") > -1 || a.indexOf(",users_reg_ip,") > -1) {
+                    temp = rs.getString("users_reg_ip");
+                    if (temp != null) {
+                        en.setUsersRegIp(java.lang.String.valueOf(temp));
+                    }
+                }
+                list.add(en);
+            }
+            t2 = new Date().getTime();
+            sb.append(";组装对象耗时:").append(t2 - t1).append("毫秒");
+            Log.sql(sb.toString());
+        } catch (Exception e) {
+            Log.e(e, sb.toString());
+        } finally {
+            DataBase.db.close(conn, rs, ps);
+        }
+        return list;
+    }
+
+    @Override
+    public List<Users> usersQuery(Users users) {
+        AutoSqlEntity ase = users.toSelect();
+        return usersQuery(ase.sql, ase.objs);
+    }
+
+    @Override
+    public ListPage usersQuery(String sql, Object[] arr, int page, int limit) {
+        ListPage listPage = new ListPage();
+        List<Users> list = usersQuery(sql, arr);
+        listPage.limitList(list, page, limit);
+        return listPage;
+    }
+
+    @Override
+    public ListPage usersQuery(Users users, int page, int limit, int maxPage, int maxLimit) {
+        limit=limit>maxLimit ? maxLimit : limit;
+        page=page>maxPage ? maxPage : page;
+        ListPage listPage = new ListPage();
+        AutoSqlEntity ase = users.toSelect();
+        List<Users> list = usersQuery(ase.sql + " limit "+(maxPage*limit), ase.objs);
+        listPage.limitList(list, page, limit);
+        return listPage;
+    }
+
+    @Override
+    public List<Users> usersQueryCache(String sql, Object[] arr, int mm) {
+        List<Users> list = new ArrayList<>();
+        String key = DataBase.db.getKey(sql, arr);
+        String str = Cache.gzbCache.get(key);
+        if (str == null) {
+            Log.sql("Miss:" + key);
+            list = usersQuery(sql, arr);
+            Cache.gzbCache.set(key, list.toString(), mm);
+        } else {
+            Log.sql("Hit:" + key);
+            list = usersToList(str);
+        }
+        return list;
+    }
+    @Override
+    public List<Users> usersQueryCache(Users users, int mm) {
+        AutoSqlEntity ase = users.toSelect();
+        return usersQueryCache(ase.sql, ase.objs, mm);
+    }
+
+    @Override
+    public ListPage usersQueryCache(String sql, Object[] arr, int page, int limit, int mm) {
+        ListPage listPage = new ListPage();
+        List<Users> list = usersQueryCache(sql, arr, mm);
+        listPage.limitList(list, page, limit);
+        return listPage;
+    }
+
+    @Override
+    public ListPage usersQueryCache(Users users, int page, int limit, int maxPage, int maxLimit, int mm) {
+        limit=limit>maxLimit ? maxLimit : limit;
+        page=page > maxPage ? maxPage : page;
+        ListPage listPage = new ListPage();
+        AutoSqlEntity ase = users.toSelect();
+        List<Users> list = usersQueryCache(ase.sql+ " limit "+(maxPage*limit), ase.objs, mm);
+        listPage.limitList(list, page, limit);
+        return listPage;
+    }
+
+    @Override
+    public int usersDelete(Users users) {
+        AutoSqlEntity ase = users.toDelete();
+        return DataBase.db.runSqlUpdateOrSaveOrDelete(ase.sql, ase.objs);
+    }
+
+    @Override
+    public int usersInsert(Users users) {
+        users.setUsersId(DataBase.db.getOnlyIdDistributed());
+        AutoSqlEntity ase = users.toInsert();
+        return DataBase.db.runSqlUpdateOrSaveOrDelete(ase.sql, ase.objs);
+    }
+
+    @Override
+    public int usersUpdate(Users users) {
+        AutoSqlEntity ase = users.toUpdate();
+        return DataBase.db.runSqlUpdateOrSaveOrDelete(ase.sql, ase.objs);
+    }
+
+
+    @Override
+    public int usersInsertAsy(Users users) {
+        return usersInsertAsy(users, true);
+    }
+
+    @Override
+    public int usersInsertAsy(Users users, boolean auto) {
+        if (auto) {
+            users.setUsersId(DataBase.db.getOnlyIdDistributed());
+        }
+        AutoSqlEntity ase = users.toInsert();
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
+    }
+
+    @Override
+    public int usersDeleteAsy(Users users) {
+        AutoSqlEntity ase = users.toUpdate();
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
+    }
+
+    @Override
+    public int usersUpdateAsy(Users users) {
+        AutoSqlEntity ase = users.toUpdate();
+        return DataBase.db.addAsyInfo(ase.sql, ase.objs);
+    }
+
+    @Override
+    public int usersBatch(List<Users> list) {
+        return usersBatch(list, true);
+    }
+
+    @Override
+    public int usersBatch(List<Users> list, boolean autoId) {
+        Connection conn = null;
+        ResultSet rs = null;
+        PreparedStatement ps = null;
+        StringBuilder sb = new StringBuilder();
+        try {
+            long t1 = new Date().getTime();
+            for (int i = 0; i < list.size(); i++) {
+                if (autoId) {
+                    list.get(i).setUsersId(DataBase.db.getOnlyIdDistributed());
+                }
+                AutoSqlEntity ase = list.get(i).toInsert();
+                if (i == 0) {
+                    sb.append("Batch:").append(ase.sql).append(";参数:");
+                    conn = DataBase.db.getConnection();
+                    conn.setAutoCommit(false);
+                    ps = conn.prepareStatement(ase.sql);
+                }
+                for (int i1 = 0; i1 < ase.objs.length; i1++) {
+                    ps.setObject(i1 + 1, ase.objs[i1]);
+                }
+                sb.append(DataBase.db.getKey(ase.sql, ase.objs));
+                ps.addBatch();
+            }
+            long t2 = new Date().getTime();
+            sb.append(";组装耗时:");
+            sb.append(t2 - t1);
+            sb.append("毫秒");
+            t1 = new Date().getTime();
+            int[] res = ps.executeBatch();
+            conn.commit();
+            t2 = new Date().getTime();
+            sb.append(";执行耗时:");
+            sb.append(t2 - t1);
+            sb.append("毫秒");
+            Log.sql(sb.toString());
+            return res.length;
+        } catch (SQLIntegrityConstraintViolationException e) {
+            Log.e(e, "ID冲突" + sb.toString());
+            return -1;
+        } catch (Exception e) {
+            Log.e(e, sb.toString());
+            return -1;
+        } finally {
+            try {
+                conn.setAutoCommit(true);
+                DataBase.db.close(conn, rs, ps);
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public int usersBatch(String sql, List<Object[]> list) {
         Connection conn = null;
         ResultSet rs = null;
         PreparedStatement ps = null;

@@ -214,6 +214,23 @@ public class FileManager {
         list.add(this.fileManagerType);
         return new AutoSqlEntity(sb.toString(),list.toArray());
     }
+    public String toInsert2(){
+        return new StringBuilder().append("insert into "+DataBase.fileManagerName+"(file_manager_id,file_manager_md5,file_manager_name,file_manager_time,file_manager_state,file_manager_read_num,file_manager_type) values('")
+                .append(this.fileManagerId==null?"":this.fileManagerId)
+                .append("','")
+                .append(this.fileManagerMd5==null?"":this.fileManagerMd5)
+                .append("','")
+                .append(this.fileManagerName==null?"":this.fileManagerName)
+                .append("','")
+                .append(this.fileManagerTime==null?"":this.fileManagerTime)
+                .append("','")
+                .append(this.fileManagerState==null?"":this.fileManagerState)
+                .append("','")
+                .append(this.fileManagerReadNum==null?"":this.fileManagerReadNum)
+                .append("','")
+                .append(this.fileManagerType==null?"":this.fileManagerType)
+                .append("')").toString();
+    }
     public FileManager find(BaseDao dao) {
         return dao.fileManagerFind(this);
     }

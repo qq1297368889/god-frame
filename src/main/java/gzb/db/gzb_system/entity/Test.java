@@ -126,6 +126,15 @@ public class Test {
         list.add(this.testState);
         return new AutoSqlEntity(sb.toString(),list.toArray());
     }
+    public String toInsert2(){
+        return new StringBuilder().append("insert into "+DataBase.testName+"(test_id,test_name,test_state) values('")
+                .append(this.testId==null?"":this.testId)
+                .append("','")
+                .append(this.testName==null?"":this.testName)
+                .append("','")
+                .append(this.testState==null?"":this.testState)
+                .append("')").toString();
+    }
     public Test find(BaseDao dao) {
         return dao.testFind(this);
     }

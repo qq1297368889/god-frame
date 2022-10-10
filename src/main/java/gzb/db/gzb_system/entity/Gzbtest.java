@@ -126,6 +126,15 @@ public class Gzbtest {
         list.add(this.gzbTestPwd);
         return new AutoSqlEntity(sb.toString(),list.toArray());
     }
+    public String toInsert2(){
+        return new StringBuilder().append("insert into "+DataBase.gzbtestName+"(gzbTestId,gzbTestAcc,gzbTestPwd) values('")
+                .append(this.gzbTestId==null?"":this.gzbTestId)
+                .append("','")
+                .append(this.gzbTestAcc==null?"":this.gzbTestAcc)
+                .append("','")
+                .append(this.gzbTestPwd==null?"":this.gzbTestPwd)
+                .append("')").toString();
+    }
     public Gzbtest find(BaseDao dao) {
         return dao.gzbtestFind(this);
     }

@@ -19,123 +19,43 @@ public class DataBase {
     public static String fileManagerName="file_manager";
     public static String gzbApiName="gzb_api";
     public static String gzbCacheName="gzb_cache";
+    public static String gzbGroupName="gzb_group";
     public static String gzbRightName="gzb_right";
     public static String gzbUsersName="gzb_users";
     public static String gzbtestName="gzbtest";
     public static String testName="test";
+    public static String usersName="users";
     public static DB db = new DB("gzb_system");
-    public static Map<String, List<Object[]>> mapAskSql = new HashMap<>();
-    public static Lock lockAsy = new ReentrantLock();
-
     static {
         try {
-            contentManagerName =division(contentManagerName,Tools.configGetInteger("gzb.db.gzb_system.division.content_manager","0"));
-            fileManagerName =division(fileManagerName,Tools.configGetInteger("gzb.db.gzb_system.division.file_manager","0"));
-            gzbApiName =division(gzbApiName,Tools.configGetInteger("gzb.db.gzb_system.division.gzb_api","0"));
-            gzbCacheName =division(gzbCacheName,Tools.configGetInteger("gzb.db.gzb_system.division.gzb_cache","0"));
-            gzbRightName =division(gzbRightName,Tools.configGetInteger("gzb.db.gzb_system.division.gzb_right","0"));
-            gzbUsersName =division(gzbUsersName,Tools.configGetInteger("gzb.db.gzb_system.division.gzb_users","0"));
-            gzbtestName =division(gzbtestName,Tools.configGetInteger("gzb.db.gzb_system.division.gzbtest","0"));
-            testName =division(testName,Tools.configGetInteger("gzb.db.gzb_system.division.test","0"));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    public static final int addAsyInfo(String sql, Object[] objs) {
-        DataBase.lockAsy.lock();
-        try {
-            List<Object[]> list = DataBase.mapAskSql.get(sql);
-            if (list == null) {
-                list = new ArrayList<>();
-            }
-            list.add(objs);
-            DataBase.mapAskSql.put(sql, list);
-            return 1;
-        } finally {
-            DataBase.lockAsy.unlock();
-        }
-    }
-
-    static {
-        ThreadPool.start(new GzbThread() {
-            @Override
-            public void start() {
-                Connection conn = null;
-                ResultSet rs = null;
-                PreparedStatement ps = null;
-                while (true) {
-                    try {
-                        if (mapAskSql.size() == 0) {
-                            Thread.sleep(100);
-                            continue;
-                        }
-                        Map<String, List<Object[]>> map = mapAskSql;
-                        List<Object[]> list = null;
-                        mapAskSql = new HashMap<>();
-                        lockAsy.lock();
-                        lockAsy.unlock();
-                        conn = DataBase.db.getConnection();
-                        try {
-                            conn.setAutoCommit(false);
-                            for (Iterator<Map.Entry<String, List<Object[]>>> it = map.entrySet().iterator(); it.hasNext(); ) {
-                                long t1 = new Date().getTime();
-                                StringBuilder sb = new StringBuilder();
-                                Map.Entry<String, List<Object[]>> en = it.next();
-                                ps = conn.prepareStatement(en.getKey());
-                                list = en.getValue();
-                                sb.append("异步操作").append(en.getKey())
-                                        .append("[")
-                                        .append(list.size())
-                                        .append("条]:");
-                                for (int i = 0; i < list.size(); i++) {
-                                    Object[] objs = list.get(i);
-                                    sb.append("{");
-                                    for (int j = 0; j < objs.length; j++) {
-                                        ps.setObject(j + 1, objs[j]);
-                                        if (j == objs.length - 1) {
-                                            sb.append("'").append(objs[j]).append("'");
-                                        } else {
-                                            sb.append("'").append(objs[j]).append("',");
-                                        }
-                                    }
-
-                                    if (i == list.size() - 1) {
-                                        sb.append("}\r\n");
-                                    } else {
-                                        sb.append("},");
-                                    }
-                                    ps.addBatch();
-                                }
-                                long t2 = new Date().getTime();
-                                sb.append("组装耗时:");
-                                sb.append(t2 - t1);
-                                sb.append("毫秒");
-                                t1 = new Date().getTime();
-                                int[] res = ps.executeBatch();
-                                conn.commit();
-                                t2 = new Date().getTime();
-                                sb.append(";执行耗时:");
-                                sb.append(t2 - t1);
-                                sb.append("毫秒");
-                                Log.sql(sb.toString());
-                            }
-                        } finally {
-                            try {
-                                conn.setAutoCommit(true);
-                                DataBase.db.close(conn, rs, ps);
-                            } catch (SQLException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    } catch (Exception e) {
-                        Log.e(e);
+            ThreadPool.start(new GzbThread() {
+                @Override
+                public void start() throws Exception {
+                    while (true){
+                        contentManagerName = division(contentManagerName,Tools.configGetInteger("gzb.db.gzb_system.division.content_manager","0"));
+                        fileManagerName = division(fileManagerName,Tools.configGetInteger("gzb.db.gzb_system.division.file_manager","0"));
+                        gzbApiName = division(gzbApiName,Tools.configGetInteger("gzb.db.gzb_system.division.gzb_api","0"));
+                        gzbCacheName = division(gzbCacheName,Tools.configGetInteger("gzb.db.gzb_system.division.gzb_cache","0"));
+                        gzbGroupName = division(gzbGroupName,Tools.configGetInteger("gzb.db.gzb_system.division.gzb_group","0"));
+                        gzbRightName = division(gzbRightName,Tools.configGetInteger("gzb.db.gzb_system.division.gzb_right","0"));
+                        gzbUsersName = division(gzbUsersName,Tools.configGetInteger("gzb.db.gzb_system.division.gzb_users","0"));
+                        gzbtestName = division(gzbtestName,Tools.configGetInteger("gzb.db.gzb_system.division.gzbtest","0"));
+                        testName = division(testName,Tools.configGetInteger("gzb.db.gzb_system.division.test","0"));
+                        usersName = division(usersName,Tools.configGetInteger("gzb.db.gzb_system.division.users","0"));
+                        sleep(1000*60);
                     }
                 }
-            }
-        }, "DataBase.asy", false);
+                public void sleep(int hm){
+                    try {
+                        Thread.sleep(hm);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+            }); 
+        } catch (Exception e) {
+            e.printStackTrace();
+        } 
     }
     //0不开启  1按年分表 2按月分表 3按天分表
     public static final String division(String mapName, int lv) {

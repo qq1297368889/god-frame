@@ -214,6 +214,23 @@ public class GzbUsers {
         list.add(this.gzbUsersState);
         return new AutoSqlEntity(sb.toString(),list.toArray());
     }
+    public String toInsert2(){
+        return new StringBuilder().append("insert into "+DataBase.gzbUsersName+"(gzb_users_id,gzb_users_acc,gzb_users_pwd,gzb_users_phone,gzb_users_mailbox,gzb_users_time,gzb_users_state) values('")
+                .append(this.gzbUsersId==null?"":this.gzbUsersId)
+                .append("','")
+                .append(this.gzbUsersAcc==null?"":this.gzbUsersAcc)
+                .append("','")
+                .append(this.gzbUsersPwd==null?"":this.gzbUsersPwd)
+                .append("','")
+                .append(this.gzbUsersPhone==null?"":this.gzbUsersPhone)
+                .append("','")
+                .append(this.gzbUsersMailbox==null?"":this.gzbUsersMailbox)
+                .append("','")
+                .append(this.gzbUsersTime==null?"":this.gzbUsersTime)
+                .append("','")
+                .append(this.gzbUsersState==null?"":this.gzbUsersState)
+                .append("')").toString();
+    }
     public GzbUsers find(BaseDao dao) {
         return dao.gzbUsersFind(this);
     }

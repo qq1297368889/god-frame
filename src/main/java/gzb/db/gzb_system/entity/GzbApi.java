@@ -148,6 +148,17 @@ public class GzbApi {
         list.add(this.gzbApiCode);
         return new AutoSqlEntity(sb.toString(),list.toArray());
     }
+    public String toInsert2(){
+        return new StringBuilder().append("insert into "+DataBase.gzbApiName+"(gzb_api_id,gzb_api_name,gzb_api_state,gzb_api_code) values('")
+                .append(this.gzbApiId==null?"":this.gzbApiId)
+                .append("','")
+                .append(this.gzbApiName==null?"":this.gzbApiName)
+                .append("','")
+                .append(this.gzbApiState==null?"":this.gzbApiState)
+                .append("','")
+                .append(this.gzbApiCode==null?"":this.gzbApiCode)
+                .append("')").toString();
+    }
     public GzbApi find(BaseDao dao) {
         return dao.gzbApiFind(this);
     }
