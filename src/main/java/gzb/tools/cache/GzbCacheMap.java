@@ -50,7 +50,7 @@ public class GzbCacheMap implements GzbCache {
     }
 
     @Override
-    public Long getIncr(String key) {
+    public int getIncr(String key) {
         CacheEntity ce = map.get(key);
         if (ce == null) {
             lock.lock();
@@ -69,17 +69,23 @@ public class GzbCacheMap implements GzbCache {
                 lock.unlock();
             }
         }
-        Long a = 0l;
+        if (ce.getUseTime() + 0 > 0 && ce.getUseTime() + 0 < new DateTime().toStampInt()) {
+            map.remove(key);
+            return getIncr(key);
+        }
+        int id = 0;
         ce.getLock().lock();
         try {
-            a = Long.valueOf(ce.getVal().toString()) + 1;
-            ce.setVal(a.toString());
+            id = Integer.valueOf(ce.getVal()) + 1;
+            ce.setVal(String.valueOf(id));
         } catch (Exception e) {
             Log.e(e);
+            id=0;
+            ce.setVal(String.valueOf(id));
         } finally {
             ce.getLock().unlock();
         }
-        return a;
+        return id;
     }
 
     @Override

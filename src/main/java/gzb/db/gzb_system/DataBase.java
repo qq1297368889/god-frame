@@ -4,6 +4,7 @@ import gzb.db.DB;
 import gzb.tools.*;
 import gzb.tools.thread.GzbThread;
 import gzb.tools.thread.ThreadPool;
+import gzb.tools.cache.Cache;
 
 import java.sql.*;
 import java.util.*;
@@ -28,6 +29,7 @@ public class DataBase {
     public static DB db = new DB("gzb_system");
     static {
         try {
+            Cache.gzbCache.set("db_test_test_id_auto_incr", String.valueOf(db.getMaxId_db_private("test", "test_id")));
             ThreadPool.start(new GzbThread() {
                 @Override
                 public void start() throws Exception {

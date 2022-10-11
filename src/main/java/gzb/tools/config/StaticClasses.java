@@ -22,8 +22,17 @@ public class StaticClasses {
     public static String groovyLoadUrl;
     public static String loginPage;
     public static String uploadPath;
+    public static String staticPath;
     public static int asyBatchNum;
     public static int asySleepHm;
+
+    public static int flowTypeSecond;
+    public static int flowTypeMinute;
+    public static int flowTypeHour;
+    public static int flowTypeDay;
+    public static int flowType;
+    public static String flowTypeException;
+
 
     //对应 tools.json 的 code state msg jump data
     public static String json_code;
@@ -40,7 +49,6 @@ public class StaticClasses {
 
     //固定 3位数 服务器编号 --- AUTO ---
     public static int devName;
-    public static int flow_public;
 
     static {
         lock1 = new ReentrantLock();
@@ -56,12 +64,17 @@ public class StaticClasses {
             devName = Tools.configGetInteger("gzb.devName", "100");
             groovyLoadType = Tools.configGetString("gzb.groovy.load.type", "no");
             groovyLoadUrl = Tools.configGetString("gzb.groovy.load.url", "/");
-            flow_public = Tools.configGetInteger("gzb.flow.public", "0");
             uploadPath = Tools.configGetString("gzb.upload.path", "/");
             asyBatchNum = Tools.configGetInteger("gzb.db.asy.batch.num", "10000");
             asySleepHm = Tools.configGetInteger("gzb.db.asy.sleep.hm", "1000");
+            staticPath = Tools.configGetString("gzb.static.path", "/");
 
-
+            flowTypeSecond = Tools.configGetInteger("gzb.flow.type.mm", "0");
+            flowTypeMinute = Tools.configGetInteger("gzb.flow.type.minute", "0");
+            flowTypeHour = Tools.configGetInteger("gzb.flow.type.hour", "0");
+            flowTypeDay = Tools.configGetInteger("gzb.flow.type.day", "0");
+            flowType = Tools.configGetInteger("gzb.flow.type", "1");
+            flowTypeException = Tools.configGetString("gzb.flow.type.exception", ".css/.js/.ts");
 
 
             json_code = Tools.configGetString("gzb.json.code", "code");
@@ -75,6 +88,7 @@ public class StaticClasses {
             json_next = Tools.configGetString("gzb.json.next", "next");
 
 
+            staticPath=staticPath.replaceAll("\\.\\./","");
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(e);
@@ -118,7 +132,11 @@ public class StaticClasses {
                         "json_data=" + json_data + "," +"\n"+
                         "json_entity_data=" + json_entity_data + "," +"\n"+
                         "devName=" + devName + "," +"\n"+
-                        "flow_public=" + flow_public + "" +"\n"+
+                        "staticPath=" + staticPath + "," +"\n"+
+                        "flowTypeSecond=" + flowTypeSecond + "," +"\n"+
+                        "flowTypeMinute=" + flowTypeMinute + "," +"\n"+
+                        "flowTypeHour=" + flowTypeHour + "," +"\n"+
+                        "flowTypeDay=" + flowTypeDay + "," +"\n"+
                         "]"
         );
 

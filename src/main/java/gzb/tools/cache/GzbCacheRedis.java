@@ -8,7 +8,8 @@ import redis.clients.jedis.JedisPoolConfig;
 
 public class GzbCacheRedis implements GzbCache {
 
-    static gzb.tools.log.Log Log=new LogImpl(GzbCacheRedis.class);
+    static gzb.tools.log.Log Log = new LogImpl(GzbCacheRedis.class);
+
     public static void main(String[] args) {
         GzbCacheRedis g = new GzbCacheRedis();
         g.set("k1", "123");
@@ -47,19 +48,21 @@ public class GzbCacheRedis implements GzbCache {
 
     }
 
-    public Long getIncr(String key) {
+    public int getIncr(String key) {
         Jedis jedis = null;
+        int id = 0;
         try {
             jedis = jedisPool.getResource();
-            return jedis.incr(key);
+            id = Integer.valueOf(jedis.incr(key).toString());
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
+            id = 0;
         } finally {
             if (jedis != null) {
                 jedis.close();
             }
         }
+        return id;
     }
 
     public String get(String key) {

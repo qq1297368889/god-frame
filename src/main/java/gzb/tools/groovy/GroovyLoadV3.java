@@ -10,14 +10,16 @@ import gzb.tools.entity.GroovyReturnEntity;
 import gzb.tools.log.ColorEnum;
 import gzb.tools.thread.GzbThread;
 import gzb.tools.thread.ThreadPool;
-import java.lang.reflect.Method;
+import jline.internal.Log;
+
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class GroovyLoadV2 {
+public class GroovyLoadV3 {
     public static Map<String, GroovyLoadV2Entity> groovyClassMap = new HashMap<>();
     public static Map<String, String> fileName_webPath = new HashMap<>();
     private static GroovyObject object;
@@ -28,19 +30,18 @@ public class GroovyLoadV2 {
     }
 
 
-
     public static final void init() {
         try {
-             groovyPackage = Tools.configGetString("gzb.groovyPackage", "defVal");
-            groovyPackage=groovyPackage.replaceAll("\\\\","/");
+            groovyPackage = Tools.configGetString("gzb.groovyPackage", "defVal");
+            groovyPackage = groovyPackage.replaceAll("\\\\", "/");
             String[] ss1 = groovyPackage.split(",");
             for (String folder : ss1) {
-                loadFolderNotRepeat(folder);
+                loadFolder(folder,true);
             }
             if (StaticClasses.groovyLoadType.equals("file")) {
                 ThreadPool.start(new GzbThread() {
                     @Override
-                    public void start() throws Exception {
+                    public void start(){
                         while (true) {
                             try {
                                 for (String folder : ss1) {
@@ -50,11 +51,11 @@ public class GroovyLoadV2 {
                                         if (file.getName().indexOf(".java") > -1 || file.getName().indexOf(".groovy") > -1) {
                                             String webPath = fileName_webPath.get(file.getParent() + "/" + file.getName());
                                             if (webPath == null) {
-                                                loadFile(file);
+                                                loadFile(file,true);
                                             } else {
                                                 GroovyLoadV2Entity groovyLoadV2Entity = groovyClassMap.get(webPath);
                                                 if (groovyLoadV2Entity.updateTime != file.lastModified()) {
-                                                    loadFile(file);
+                                                    loadFile(file,false);
                                                 }
                                             }
                                         }
@@ -81,156 +82,106 @@ public class GroovyLoadV2 {
         }
     }
 
-    public static void loadFile(File file) throws Exception {
-        GroovyObject object;
+    public static void loadFile(File file,boolean notRepeat) throws Exception {
         GroovyLoadV2Entity entity;
         GroovyClassLoader classLoader = new GroovyClassLoader(Thread.currentThread().getContextClassLoader());
         Class testGroovyClass = classLoader.parseClass(new GroovyCodeSource(file));
-
-        Object webPath = null;
         Map<String, List<String>> parameterName = new HashMap<>();
         Map<String, Class[]> parameterType = new HashMap<>();
-
         Method[] methods = testGroovyClass.getMethods();
-        object = (GroovyObject) testGroovyClass.getDeclaredConstructor().newInstance();
-        try {
-            webPath = object.getProperty("webPath");
-        } catch (Exception e) {
-            int t=1;
-            if (groovyPackage.substring(groovyPackage.length()-1,groovyPackage.length()).equals("/")){
-                t=2;
-            }
-            String []ss1=groovyPackage.split("/");
-            String []ss2=testGroovyClass.getName().split(ss1[ss1.length-t]);
-            webPath = ss2[ss2.length-t].replaceAll("\\.","/");
-        }
-        if (webPath.toString().substring(0,1).equals("/")==false){
-            webPath="/"+webPath;
-        }
-        fileName_webPath.put(file.getParent() + "/" + file.getName(), webPath.toString());
-        for (Method method : methods) {
-            String methodName = method.getName();
-            if (methodName.equals("main")
-                    || methodName.equals("getMetaClass")
-                    || methodName.equals("setMetaClass")
-                    || methodName.indexOf("$") > -1
-                    || methodName.equals("wait")
-                    || methodName.equals("equals")
-                    || methodName.equals("toString")
-                    || methodName.equals("hashCode")
-                    || methodName.equals("getClass")
-                    || methodName.equals("notify")
-                    || methodName.equals("notifyAll")
-                    || methodName.equals("getProperty")
-                    || methodName.equals("setProperty")
-                    || methodName.equals("invokeMethod")
-                    || methodName.substring(0, 3).equals("get")
-                    || methodName.substring(0, 3).equals("set")
-
-            ) {
-                //System.out.println("shield:" + webPath.toString() + "/" + methodName);
-                continue;
-            }
-            try {
-                //List<String> param = AsmMethods.getParamNamesByAsm(method);//出现bug  改为从源码获取
-                List<String> param = getMethodParameterNames(file, method.getName(), method.getParameterTypes());
-                System.out.print(ColorEnum.getColor(2)+"servlet:" + webPath.toString() + "/" + method.getName());
-                if (param != null && param.size() > 0) {
-                    parameterName.put(method.getName(), param);
-                    parameterType.put(method.getName(), method.getParameterTypes());
-                    System.out.print(param);
-                }
-            } catch (Exception e) {
-            }
-            System.out.println();
-        }
-        entity = new GroovyLoadV2Entity(file.getParent() + "/" + file.getName(), testGroovyClass, file.lastModified(), parameterName, parameterType);
-        System.out.println("载入代码：" + file.getParent() + "/" + file.getName());
-        groovyClassMap.put(webPath.toString(), entity);
-    }
-    public static void loadFileNotRepeat(File file) throws Exception {
-        GroovyObject object;
-        GroovyLoadV2Entity entity;
-        GroovyClassLoader classLoader = new GroovyClassLoader(Thread.currentThread().getContextClassLoader());
-        Class testGroovyClass = classLoader.parseClass(new GroovyCodeSource(file));
-
-        Object webPath = null;
-        Map<String, List<String>> parameterName = new HashMap<>();
-        Map<String, Class[]> parameterType = new HashMap<>();
-
-        Method[] methods = testGroovyClass.getMethods();
-        object = (GroovyObject) testGroovyClass.getDeclaredConstructor().newInstance();
-        try {
-            webPath = object.getProperty("webPath");
-        } catch (Exception e) {
-            int t=1;
-            if (groovyPackage.substring(groovyPackage.length()-1,groovyPackage.length()).equals("/")){
-              t=2;
-            }
-            String []ss1=groovyPackage.split("/");
-            String []ss2=testGroovyClass.getName().split(ss1[ss1.length-t]);
-            webPath = ss2[ss2.length-t].replaceAll("\\.","/");
-        }
-        if (webPath.toString().substring(0,1).equals("/")==false){
-            webPath="/"+webPath;
-        }
-        if (groovyClassMap.get(webPath.toString())!=null){
+        Object []arr1 = getWebPath(testGroovyClass);
+        if (notRepeat && groovyClassMap.get(arr1[0].toString())!=null){
             System.out.println(ColorEnum.getColor(5)+"终止运行，servlet(重复)类:" + testGroovyClass.getSimpleName());
-            throw  new Exception();
+            throw new Exception();
         }
-        fileName_webPath.put(file.getParent() + "/" + file.getName(), webPath.toString());
+        fileName_webPath.put(file.getParent() + "/" + file.getName(), arr1[0].toString());
+        entity = new GroovyLoadV2Entity(file.getParent() + "/" + file.getName(), testGroovyClass, file.lastModified(), parameterName, parameterType,String.valueOf(arr1[1]),Boolean.valueOf(arr1[2].toString()));
+        groovyClassMap.put(arr1[0].toString(), entity);
         for (Method method : methods) {
-            String methodName = method.getName();
-            if (methodName.equals("main")
-                    || methodName.equals("getMetaClass")
-                    || methodName.equals("setMetaClass")
-                    || methodName.indexOf("$") > -1
-                    || methodName.equals("wait")
-                    || methodName.equals("equals")
-                    || methodName.equals("toString")
-                    || methodName.equals("hashCode")
-                    || methodName.equals("getClass")
-                    || methodName.equals("notify")
-                    || methodName.equals("notifyAll")
-                    || methodName.equals("getProperty")
-                    || methodName.equals("setProperty")
-                    || methodName.equals("invokeMethod")
-                    || methodName.substring(0, 3).equals("get")
-                    || methodName.substring(0, 3).equals("set")
-
-            ) {
-                //System.out.println("shield:" + webPath.toString() + "/" + methodName);
+            if (isShield(method.getName())) {
                 continue;
             }
-            try {
-                //List<String> param = AsmMethods.getParamNamesByAsm(method);//出现bug  改为从源码获取
+            try {//List<String> param = AsmMethods.getParamNamesByAsm(method);//出现bug  改为从源码获取
                 List<String> param = getMethodParameterNames(file, method.getName(), method.getParameterTypes());
-                System.out.print(ColorEnum.getColor(2)+"servlet:" + webPath.toString() + "/" + method.getName());
+                System.out.print(ColorEnum.getColor(2) + "servlet:" + arr1[0].toString() + method.getName());
                 if (param != null && param.size() > 0) {
                     parameterName.put(method.getName(), param);
                     parameterType.put(method.getName(), method.getParameterTypes());
                     System.out.print(param);
                 }
             } catch (Exception e) {
+                e.printStackTrace();
             }
             System.out.println();
         }
-        entity = new GroovyLoadV2Entity(file.getParent() + "/" + file.getName(), testGroovyClass, file.lastModified(), parameterName, parameterType);
         System.out.println("载入代码：" + file.getParent() + "/" + file.getName());
-        groovyClassMap.put(webPath.toString(), entity);
     }
+
+    public static final Object[] getWebPath(Class class1) {
+        Object []arr1 = new Object[3];
+        try {
+            Request request1 = (Request) class1.getAnnotation(Request.class);
+            if (request1 == null) {
+                arr1[0] = class1.getSimpleName();
+                arr1[1]="*/*";
+                arr1[2]=false;
+            } else {
+                arr1[0] = request1.url();
+                arr1[1]=request1.contentType();
+                arr1[2]=request1.crossDomain();
+                arr1[1]=arr1[1]==null?"*/*":arr1[1];
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (arr1[0].toString().substring(0, 1).equals("/") == false) {
+            arr1[0] = "/" + arr1[0];
+        }
+        if (arr1[0].toString().substring(arr1[0].toString().length() - 1, arr1[0].toString().length()).equals("/") == false) {
+            arr1[0] = arr1[0] + "/";
+        }
+        while (arr1[0].toString().indexOf("//")>-1){
+            arr1[0]=arr1[0].toString().replaceAll("//","/");
+        }
+        return arr1;
+    }
+
+    public static final boolean isShield(String methodName) {
+        if (methodName.equals("main")
+                || methodName.equals("getMetaClass")
+                || methodName.equals("setMetaClass")
+                || methodName.indexOf("$") > -1
+                || methodName.equals("wait")
+                || methodName.equals("equals")
+                || methodName.equals("toString")
+                || methodName.equals("hashCode")
+                || methodName.equals("getClass")
+                || methodName.equals("notify")
+                || methodName.equals("notifyAll")
+                || methodName.equals("getProperty")
+                || methodName.equals("setProperty")
+                || methodName.equals("invokeMethod")
+                || methodName.substring(0, 3).equals("get")
+                || methodName.substring(0, 3).equals("set")
+
+        ) {
+            return true;
+        }
+        return false;
+    }
+
 
     public static List<String> getMethodParameterNames(File file, String name, Class<?>[] classes) throws Exception {
         String allCode = Tools.fileReadString(file);
         List<String> list = new ArrayList<>();
 
-        while (allCode.indexOf("  ")>-1){
-            allCode=allCode.replaceAll("  ", " ");
+        while (allCode.indexOf("  ") > -1) {
+            allCode = allCode.replaceAll("  ", " ");
         }
-        while (allCode.indexOf(", ")>-1){
-            allCode=allCode.replaceAll(", ", ",");
+        while (allCode.indexOf(", ") > -1) {
+            allCode = allCode.replaceAll(", ", ",");
         }
-        allCode=allCode
+        allCode = allCode
                 .replaceAll("\t", "")
                 .replaceAll("\r\n", "")
                 .replaceAll("\r", "")
@@ -252,7 +203,7 @@ public class GroovyLoadV2 {
                         }
                     }
                 }
-                if (len+0==classes.length+0){
+                if (len + 0 == classes.length + 0) {
                     for (int i1 = 0; i1 < ss1.length; i1++) {
                         String[] ss2 = ss1[i1].split(" ");
                         if (ss2.length > 1) {
@@ -268,25 +219,15 @@ public class GroovyLoadV2 {
         return list;
     }
 
-    public static void loadFolder(String folder) throws Exception {
+    public static void loadFolder(String folder,boolean notRepeat) throws Exception {
         List<File> list = Tools.fileSub(folder, 2);
         while (list.size() > 0) {
             File file = list.remove(list.size() - 1);
             if (file.getName().indexOf(".java") > -1 || file.getName().indexOf(".groovy") > -1) {
-                loadFile(file);
+                loadFile(file,notRepeat);
             }
         }
     }
-    public static void loadFolderNotRepeat(String folder) throws Exception {
-        List<File> list = Tools.fileSub(folder, 2);
-        while (list.size() > 0) {
-            File file = list.remove(list.size() - 1);
-            if (file.getName().indexOf(".java") > -1 || file.getName().indexOf(".groovy") > -1) {
-                loadFileNotRepeat(file);
-            }
-        }
-    }
-
     public static void loadNet(String httpUrl) throws Exception {
 
     }
@@ -301,7 +242,7 @@ public class GroovyLoadV2 {
         return groovyReturnEntity;
     }
 
-    public static Object call(GroovyReturnEntity groovyReturnEntity, String name, Map<String, Object[]> parameter){
+    public static Object call(GroovyReturnEntity groovyReturnEntity, String name, Map<String, Object[]> parameter) {
         GroovyObject object = groovyReturnEntity.object;
         GroovyLoadV2Entity entity = groovyReturnEntity.entity;
         List<String> list_name;
@@ -309,7 +250,6 @@ public class GroovyLoadV2 {
         if (entity == null) {
             return null;
         }
-
         if (name.equals("main")
                 || name.equals("getMetaClass")
                 || name.equals("setMetaClass")

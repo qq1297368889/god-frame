@@ -21,8 +21,34 @@ class Test {
     static void main(String[] args) {
         test()
     }
-    static def test() {
 
+    static def test() {
+        String str1 = "E:/codes_20220814/java/project20220814/油猴/com";
+
+        List<File> list = Tools.fileSub(str1, 2)
+        for (File file : list) {
+            if (file.getName().indexOf(".class") > -1) {
+                file.delete()
+            }
+
+            //new File(file.toString().replaceAll(".class", "") + ".java").createNewFile();
+        }
+/*String str1="E:/codes_20220814/java/lib";
+        List<String> list=Tools.fileSubNames(new File(str1),2);
+        String all="";
+        int n=0;
+        for(String str : list){
+            n++
+            all+="        <dependency>\n" +
+                    "            <groupId>a"+n+"</groupId>\n" +
+                    "            <artifactId>b"+n+"</artifactId>\n" +
+                    "            <version>1.0.0.1</version>\n" +
+                    "            <scope>system</scope>\n" +
+                    "            <systemPath>"+str1+"/"+str+"</systemPath>\n" +
+                    "        </dependency>\n";
+        }
+
+        log.i(all)*/
         /*       for (int n = 0; n < 10; n++) {
                    ThreadPool.start(new GzbThread() {
                        @Override

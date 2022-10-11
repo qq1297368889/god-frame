@@ -22,8 +22,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class DB {
     static gzb.tools.log.Log Log = new LogImpl(DB.class);
-    public Integer subId = 0;
-    public long subTime = new Date().getTime();
     public Lock lock = new ReentrantLock();
     public String db_url;
     public String db_acc;
@@ -162,59 +160,15 @@ public class DB {
     }
 
     public final Long getOnlyIdDistributed() {
-        StringBuilder sb=new StringBuilder();
-        this.lock.lock();
-        try {
-            this.subId++;
-            long subTime2 = new Date().getTime();
-            if (subTime2 != subTime) {
-                this.subId = 0;
-            }else{
-                if (this.subId > 999) {
-                    this.subId = 0;
-                    Thread.sleep(1);
-                    return getOnlyIdDistributed();
-                }
-            }
-            subTime=subTime2;
-            sb.append(subTime2);
-            if (this.subId<10){
-                sb.append(0).append(0).append(this.subId.toString());
-            }else if (this.subId<100){
-                sb.append(0).append(this.subId.toString());
-            }else if (this.subId<1000){
-                sb.append(this.subId.toString());
-            }
-            sb.append(StaticClasses.devName);
-            return Long.valueOf(sb.toString());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return getOnlyIdDistributed();
-        } finally {
-            this.lock.unlock();
-        }
+        return Tools.getOnlyIdDistributed();
     }
 
     //返回一个不会重复的id redis 或者 map  自增
     public int getOnlyIdNumber(String mapName, String idName) {
-        Long id;
-        this.lock.lock();
-        try {
-            id = Cache.gzbCache.getIncr("db_" + mapName + "_" + idName + "_auto_incr");
-            if (id == null) {
-                id = getMaxId_db_private(mapName, idName);
-                if (id == null) {
-                    id = 0l;
-                }
-                Cache.gzbCache.set("db_" + mapName + "_" + idName + "_auto_incr", id.toString());
-            }
-        } finally {
-            this.lock.unlock();
-        }
-        return Integer.valueOf(id.toString());
+        return Tools.getOnlyIdNumber(mapName,idName,this);
     }
 
-    public Long getMaxId_db_private(String mapName, String idName) {
+    public int getMaxId_db_private(String mapName, String idName) {
         String sql = "select " + idName + " from " + mapName + " order by " + idName + " desc limit 1";
         Connection conn = null;
         ResultSet rs = null;
@@ -234,9 +188,9 @@ public class DB {
             if (rs.next()) {
                 String data=rs.getString(idName);
                 sb.append(",res:").append(data);
-                return Long.valueOf(data);
+                return Integer.valueOf(data);
             } else {
-                return 0l;
+                return 0;
             }
         } catch (Exception e) {
             Log.e(e, sb.toString());
@@ -244,7 +198,7 @@ public class DB {
             close(conn, rs, pstate);
             Log.sql(sb.toString());
         }
-        return 0l;
+        return 0;
     }
 
     public int addAsyInfo(String sql, Object[] objs) {

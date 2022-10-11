@@ -17,19 +17,6 @@ public class GzbCacheMsql implements GzbCache {
     public static BaseDao dao = new BaseDaoImpl();
     public static Lock lock = new ReentrantLock();
 
-    public static void main(String[] args) throws InterruptedException {
-        GzbCacheMsql g = new GzbCacheMsql();
-        g.set("key_1", "123");
-        Log.i(g.get("key_1"));
-        Log.i(g.getIncr("key_2"));
-        Log.i(g.getIncr("key_2"));
-        Log.i(g.getIncr("key_2"));
-        g.set("key_5", "123", 3);
-        Log.i(g.get("key_5"));
-        Thread.sleep(4000);
-        Log.i(g.get("key_5"));
-    }
-
     static {
         ThreadPool.start(new GzbThread() {
             @Override
@@ -53,21 +40,40 @@ public class GzbCacheMsql implements GzbCache {
         }, "GzbCacheMsql");
     }
 
-    public Long getIncr(String key) {
+    public int getIncr(String key) {
+        int id=0;
         lock.lock();
         try {
-            String tmp = get(key);
-            tmp = tmp == null || tmp.length() < 1 ? "1" : tmp;
-            Long n = Long.valueOf(tmp);
-            set(key, String.valueOf(n + 1));
-            return n;
-        } finally {
+            gzb.db.gzb_system.entity.GzbCache gc = dao.gzbCacheFind("select * from " + DataBase.gzbCacheName + " where gzb_cache_key='" +
+                    key + "' and gzb_cache_end_time > '" + new DateTime().toString() + "'", null);
+            if (gc == null) {
+                gc = new gzb.db.gzb_system.entity.GzbCache().setGzbCacheEndTime("2999-01-01 01:01:01")
+                        .setGzbCacheKey(key)
+                        .setGzbCacheNewTime(new DateTime().toString())
+                        .setGzbCacheVal("0");
+                dao.gzbCacheInsert(gc);
+            }
+            String tmp =gc.getGzbCacheVal();
+            tmp = tmp == null || tmp.length() < 1 ? "0" : tmp;
+            id = Integer.valueOf(tmp)+1;
+            gc.setGzbCacheVal(String.valueOf(id));
+            gc.update(dao);
+        }catch (Exception e){
+            Log.e(e);
+            id=0;
+        }finally {
             lock.unlock();
         }
+        return id;
     }
 
     public String get(String key) {
-        return get(key, 0);
+        gzb.db.gzb_system.entity.GzbCache gc = dao.gzbCacheFind("select * from " + DataBase.gzbCacheName + " where gzb_cache_key='" +
+                key + "' and gzb_cache_end_time > '" + new DateTime().toString() + "'", null);
+        if (gc == null) {
+            return null;
+        }
+        return gc.getGzbCacheVal();
     }
 
     public String get(String key, long mm) {

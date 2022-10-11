@@ -7,7 +7,7 @@ import gzb.tools.entity.AutoSqlEntity;
 import java.util.ArrayList;
 import java.util.List;
 public class Test {
-    private java.lang.Long testId;
+    private java.lang.Integer testId;
     private java.lang.String testName;
     private java.lang.Integer testState;
     private java.lang.String testIdOperation="=";
@@ -25,7 +25,7 @@ public class Test {
     public Test(String json) {
         String tmp;
         tmp = Tools.textMid(json, "\"testId\":\"", "\"", 1);
-        if (tmp != null && tmp.length() > 0){this.testId = java.lang.Long.valueOf(tmp);}
+        if (tmp != null && tmp.length() > 0){this.testId = java.lang.Integer.valueOf(tmp);}
         tmp = Tools.textMid(json, "\"testIdOperation\":\"", "\"", 1);
         if (tmp != null && tmp.length() > 0){this.testIdOperation = tmp;}
         tmp = Tools.textMid(json, "\"testName\":\"", "\"", 1);
@@ -52,14 +52,14 @@ public class Test {
         sb.append("}");
         return sb.toString();
     }
-    public java.lang.Long getTestId() {
+    public java.lang.Integer getTestId() {
         return this.testId;
     }
-    public Test setTestId(java.lang.Long testId) {
+    public Test setTestId(java.lang.Integer testId) {
         this.testId = testId;
         return this;
     }
-    public Test setTestId(java.lang.Long testId,java.lang.String testIdOperation) {
+    public Test setTestId(java.lang.Integer testId,java.lang.String testIdOperation) {
         this.testId = testId;
         this.testIdOperation = testIdOperation;
         return this;

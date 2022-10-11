@@ -11,14 +11,10 @@ public class Users {
     private java.lang.String usersAcc;
     private java.lang.String usersPwd;
     private java.lang.String usersState;
-    private java.lang.String usersRegTime;
-    private java.lang.String usersRegIp;
     private java.lang.String usersIdOperation="=";
     private java.lang.String usersAccOperation="=";
     private java.lang.String usersPwdOperation="=";
     private java.lang.String usersStateOperation="=";
-    private java.lang.String usersRegTimeOperation="=";
-    private java.lang.String usersRegIpOperation="=";
     private java.util.List<?>list;
     public List<?> getList() {
         return list;
@@ -46,14 +42,6 @@ public class Users {
         if (tmp != null && tmp.length() > 0){this.usersState = java.lang.String.valueOf(tmp);}
         tmp = Tools.textMid(json, "\"usersStateOperation\":\"", "\"", 1);
         if (tmp != null && tmp.length() > 0){this.usersStateOperation = tmp;}
-        tmp = Tools.textMid(json, "\"usersRegTime\":\"", "\"", 1);
-        if (tmp != null && tmp.length() > 0){this.usersRegTime = java.lang.String.valueOf(tmp);}
-        tmp = Tools.textMid(json, "\"usersRegTimeOperation\":\"", "\"", 1);
-        if (tmp != null && tmp.length() > 0){this.usersRegTimeOperation = tmp;}
-        tmp = Tools.textMid(json, "\"usersRegIp\":\"", "\"", 1);
-        if (tmp != null && tmp.length() > 0){this.usersRegIp = java.lang.String.valueOf(tmp);}
-        tmp = Tools.textMid(json, "\"usersRegIpOperation\":\"", "\"", 1);
-        if (tmp != null && tmp.length() > 0){this.usersRegIpOperation = tmp;}
     }
     @Override
     public String toString() {
@@ -65,9 +53,7 @@ public class Users {
         if (usersId != null){sb.append("\"usersId\":\"").append(usersId).append("\",");}
         if (usersAcc != null){sb.append("\"usersAcc\":\"").append(usersAcc).append("\",");}
         if (usersPwd != null){sb.append("\"usersPwd\":\"").append(usersPwd).append("\",");}
-        if (usersState != null){sb.append("\"usersState\":\"").append(usersState).append("\",");}
-        if (usersRegTime != null){sb.append("\"usersRegTime\":\"").append(usersRegTime).append("\",");}
-        if (usersRegIp != null){sb.append("\"usersRegIp\":\"").append(usersRegIp).append("\"");}
+        if (usersState != null){sb.append("\"usersState\":\"").append(usersState).append("\"");}
         if (list != null){sb.append(",\"data\":").append(list.toString()).append(",");}
         if (sb.substring(sb.length()-1,sb.length()).equals(","))sb.delete(sb.length()-1,sb.length()).equals(",");
         sb.append("}");
@@ -121,30 +107,6 @@ public class Users {
         this.usersStateOperation = usersStateOperation;
         return this;
     }
-    public java.lang.String getUsersRegTime() {
-        return this.usersRegTime;
-    }
-    public Users setUsersRegTime(java.lang.String usersRegTime) {
-        this.usersRegTime = usersRegTime;
-        return this;
-    }
-    public Users setUsersRegTime(java.lang.String usersRegTime,java.lang.String usersRegTimeOperation) {
-        this.usersRegTime = usersRegTime;
-        this.usersRegTimeOperation = usersRegTimeOperation;
-        return this;
-    }
-    public java.lang.String getUsersRegIp() {
-        return this.usersRegIp;
-    }
-    public Users setUsersRegIp(java.lang.String usersRegIp) {
-        this.usersRegIp = usersRegIp;
-        return this;
-    }
-    public Users setUsersRegIp(java.lang.String usersRegIp,java.lang.String usersRegIpOperation) {
-        this.usersRegIp = usersRegIp;
-        this.usersRegIpOperation = usersRegIpOperation;
-        return this;
-    }
     public AutoSqlEntity toWhere(String sql){
         List<Object> list=new ArrayList<>();
         StringBuilder sb=new StringBuilder();
@@ -153,8 +115,6 @@ public class Users {
         if (this.usersAcc !=null){sb.append("users_acc ").append(usersAccOperation).append(" ? and ");list.add(this.usersAcc);}
         if (this.usersPwd !=null){sb.append("users_pwd ").append(usersPwdOperation).append(" ? and ");list.add(this.usersPwd);}
         if (this.usersState !=null){sb.append("users_state ").append(usersStateOperation).append(" ? and ");list.add(this.usersState);}
-        if (this.usersRegTime !=null){sb.append("users_reg_time ").append(usersRegTimeOperation).append(" ? and ");list.add(this.usersRegTime);}
-        if (this.usersRegIp !=null){sb.append("users_reg_ip ").append(usersRegIpOperation).append(" ? and ");list.add(this.usersRegIp);}
         if (sb.substring(sb.length()-5,sb.length()).equals(" and "))sb.delete(sb.length()-5,sb.length());
         if (sb.substring(sb.length()-6,sb.length()).equals("where "))sb.delete(sb.length()-6,sb.length());
         return new AutoSqlEntity(sb.toString(),list.toArray());
@@ -173,8 +133,6 @@ public class Users {
         if (this.usersAcc !=null){sb.append("users_acc=?, ");list.add(this.usersAcc);}
         if (this.usersPwd !=null){sb.append("users_pwd=?, ");list.add(this.usersPwd);}
         if (this.usersState !=null){sb.append("users_state=?, ");list.add(this.usersState);}
-        if (this.usersRegTime !=null){sb.append("users_reg_time=?, ");list.add(this.usersRegTime);}
-        if (this.usersRegIp !=null){sb.append("users_reg_ip=?, ");list.add(this.usersRegIp);}
         if (sb.substring(sb.length()-2,sb.length()).equals(", "))sb.delete(sb.length()-2,sb.length()-1);
         if (sb.substring(sb.length()-4,sb.length()).equals("set "))sb.delete(sb.length()-4,sb.length());
         sb.append("where users_id=?");list.add(this.usersId);
@@ -183,17 +141,15 @@ public class Users {
     public AutoSqlEntity toInsert(){
         List<Object> list=new ArrayList<>();
         StringBuilder sb=new StringBuilder();
-        sb.append("insert into "+DataBase.usersName+"(users_id,users_acc,users_pwd,users_state,users_reg_time,users_reg_ip) values(?,?,?,?,?,?)");
+        sb.append("insert into "+DataBase.usersName+"(users_id,users_acc,users_pwd,users_state) values(?,?,?,?)");
         list.add(this.usersId);
         list.add(this.usersAcc);
         list.add(this.usersPwd);
         list.add(this.usersState);
-        list.add(this.usersRegTime);
-        list.add(this.usersRegIp);
         return new AutoSqlEntity(sb.toString(),list.toArray());
     }
     public String toInsert2(){
-        return new StringBuilder().append("insert into "+DataBase.usersName+"(users_id,users_acc,users_pwd,users_state,users_reg_time,users_reg_ip) values('")
+        return new StringBuilder().append("insert into "+DataBase.usersName+"(users_id,users_acc,users_pwd,users_state) values('")
                 .append(this.usersId==null?"":this.usersId)
                 .append("','")
                 .append(this.usersAcc==null?"":this.usersAcc)
@@ -201,10 +157,6 @@ public class Users {
                 .append(this.usersPwd==null?"":this.usersPwd)
                 .append("','")
                 .append(this.usersState==null?"":this.usersState)
-                .append("','")
-                .append(this.usersRegTime==null?"":this.usersRegTime)
-                .append("','")
-                .append(this.usersRegIp==null?"":this.usersRegIp)
                 .append("')").toString();
     }
     public Users find(BaseDao dao) {

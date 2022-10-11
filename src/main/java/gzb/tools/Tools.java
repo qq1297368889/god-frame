@@ -1,5 +1,7 @@
 package gzb.tools;
 
+import gzb.db.DB;
+import gzb.tools.cache.Cache;
 import gzb.tools.config.StaticClasses;
 import gzb.tools.http.HTTP;
 import gzb.tools.http.HttpRequest;
@@ -30,26 +32,68 @@ public class Tools {
     static gzb.tools.log.Log Log = new LogImpl(Tools.class);
     public static String ProjectPath = null;
     public static String[] ss1 = "QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789".split("|");
+    public static Lock lock = new ReentrantLock();
+    public static short subId = 0;
+    public static long subTime = 0;
 
+    public static final long getOnlyIdDistributed() {
+        StringBuilder sb = new StringBuilder();
+        lock.lock();
+        try {
+            subId++;
+            long subTime2 = new Date().getTime();
+            if (subTime2 != subTime) {
+                subId = 0;
+            } else {
+                if (subId > 999) {
+                    subId = 0;
+                    Thread.sleep(1);
+                    return getOnlyIdDistributed();
+                }
+            }
+            subTime = subTime2;
+            sb.append(subTime2);
+            if (subId < 10) {
+                sb.append(0).append(0).append(subId);
+            } else if (subId < 100) {
+                sb.append(0).append(subId);
+            } else if (subId < 1000) {
+                sb.append(subId);
+            }
+            sb.append(StaticClasses.devName);
+        } catch (Exception e) {
+            e.printStackTrace();
+            sb = new StringBuilder().append(getOnlyIdDistributed());
+        } finally {
+            lock.unlock();
+        }
+        return Long.valueOf(sb.toString());
+    }
+
+    public static final int getOnlyIdNumber(String mapName, String idName, DB db) {
+        int id;
+        lock.lock();
+        try {
+            id = Cache.gzbCache.getIncr("db_" + mapName + "_" + idName + "_auto_incr");
+            if (id < 1) {
+                id = db.getMaxId_db_private(mapName, idName);
+            }
+            Cache.gzbCache.set("db_" + mapName + "_" + idName + "_auto_incr", String.valueOf(id));
+        } finally {
+            lock.unlock();
+        }
+        return Integer.valueOf(String.valueOf(id));
+    }
 
     public static void main(String[] args) throws Exception {
-        //0123456789abcdef
-        //46cc793c53dc451b
-        //m3u8ToMp4("https://jscdn4.easyland.club/GC7905BTH/hls/index.m3u8?sign=4355134565fc0de9d554c91bd204a29c&t=1665312588", "E:/20221003", "1.mp4",1000,2024);
-        String miwen = "AeAqHGQAAi+zVFCQBeQCnsrzLjmSs+braEbikxMw0uzzdG9yv7LaP5lHAhDVi49Z8iBeadPzG3KVOspHAOSMSy7BtWXigotjyDL0l2/8ZdPjmmsSkYan9LIaNTgcBE8qgSGRZVoS68OZdQFKsYWQD9XbZcIXCN1cHi3KeJtAzXY2T7LpY5+lvvxjUw4qT88jaWuX6zOSeNIjUBEZFKnfF8paAuROdDziSOySUHBvN7jGxr+FjVaYxHsruRma0I8yfOifjBr8+0prWiCcIU8NBsRv9+m6r7EZbjI9XimugYOf6PG/sQWQ8In5f7CIZq/NHXmbdoRZmeDWH7sIhhCvfpMkl/65EBwO2RM13GLDArxAQHPYW5Bdyeg/vOlnSyonDMVM9+cvm/Atlgvl6sfC9PsPTq6SBX/jwBTVOxmzI6aUCBX/gV25KB/AccZxGlNkCSznU7T9BdAiA4PrhQEY//klVMQrVaNoww/fnBQMx5ZFcKBu+tEEiLLJHCFslyALhaSuNm+T9wYL4z3QLTN9bswzVxE9/cKGpDdBifG1B3Ed6XjljPb7xEYiauWYGkiOQ4JraDBt0byAd/1gHPmevYf0nBhRGsZyIhbomf7zTtVz9+QV4FJN6aVUSQkxb6yu";
+        File file = new File("C:\\upload\\79a\\83d\\0b7\\79a83d0b773ce0e447f4f81732e1b3cf.mp4");
 
-        System.out.println("解密：" + AES128.aesECBDe(miwen, "46cc793c53dc451b"));
-        HTTP http = new HTTP();
+        Log.i(file.length());
+        Log.i(file.length() > 10000000);
+        file = new File("E:\\0d71daf25d8d4465k2Z91eqK6C5zzqr4ZyVc.json.txt");
 
-        http.addCookies("content-type", "application/json;charset=UTF-8");
-        http.addCookies("timestamp", new DateTime().toStampInt() + "");
-
-        http.addCookies("token", "");
-        http.addCookies("accept", "application/json, text/plain, */*");
-        http.httpPostByte("https://www.kmqsaq.com/video/getList", "{\"clientType\":1,\"length\":8,\"page\":1,\"type\":1,\"orderType\":10002,\"orderText\":[{\"dir\":\"desc\",\"column\":\"seeCount\"}]}");
-
-        Log.i(http.toString());
-
+        Log.i(file.length());
+        Log.i(file.length() > 10000000);
 
     }
 
@@ -95,6 +139,7 @@ public class Tools {
         return file;
     }
 
+    //m3u8链接 转 mp4文件
     public static final File m3u8ToMp4(String m3u8Url, String filePath, String fileName) throws Exception {
         return m3u8ToMp4(m3u8Url, filePath, fileName, 0, 0);
     }
@@ -277,10 +322,12 @@ public class Tools {
     public static final String jsonJump(String url) {
         return json(4, "未登录或登录失效,请重新登录~", null, url);
     }
+
     public static final String json(Object state, Object message, Object object, Object jump) {
-        return json(state, message, object, jump,null,null,null,null);
+        return json(state, message, object, jump, null, null, null, null);
     }
-    public static final String json(Object state, Object message, Object object, Object jump,Object page,Object limit,Object count,Object next) {
+
+    public static final String json(Object state, Object message, Object object, Object jump, Object page, Object limit, Object count, Object next) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder
                 .append("{");
@@ -346,10 +393,10 @@ public class Tools {
                     .append(object)
                     .append(",");
         }
-        stringBuilder.append("}");
-        if (stringBuilder.substring(stringBuilder.length()-1).equals(",")){
-            stringBuilder.delete(stringBuilder.length()-1,stringBuilder.length());
+        if (stringBuilder.substring(stringBuilder.length() - 1, stringBuilder.length()).equals(",")) {
+            stringBuilder.delete(stringBuilder.length() - 1, stringBuilder.length());
         }
+        stringBuilder.append("}");
         String json = stringBuilder.toString()
                 .replaceAll("\r\n", "\\\\r\\\\n")
                 .replaceAll("\r", "\\\\r")
@@ -380,10 +427,10 @@ public class Tools {
         List<UploadEntity> list;
         for (Iterator<Part> iterator = parts.iterator(); iterator.hasNext(); ) {
             part = iterator.next();
-            Log.i("类型名称=" + part.getName() +
-                    " / 类型=" + part.getContentType() +
-                    " / 提交的类型名称=" + part.getSubmittedFileName() +
-                    " / 流=" + part.getInputStream());
+            Log.i("参数名=" + part.getName() +
+                    " / 文件名=" + part.getSubmittedFileName() +
+                    " / 文件类型=" + part.getContentType() +
+                    " / 字节流长度=" + part.getInputStream().available());
             inputStream = part.getInputStream();
             bytes = inputStream.readAllBytes();
             md5 = toMd5(bytes);
@@ -393,7 +440,6 @@ public class Tools {
             } else {
                 fileName = md5 + ".data";
             }
-
             file = new File(filePath + md5.substring(0, 3) + "/" + md5.substring(3, 6) + "/" + md5.substring(6, 9) + "/" + fileName);
             if (!file.exists()) {
                 file.getParentFile().mkdirs();
@@ -404,10 +450,7 @@ public class Tools {
                 inputStream.close();
                 fos.flush();
                 fos.close();
-            } else {
-                Log.i("已存在文件：" + filePath + fileName);
             }
-
             list = map.get(part.getName());
             if (list == null) {
                 list = new ArrayList<>();
@@ -424,8 +467,7 @@ public class Tools {
         return map;
     }
 
-    public static final void CookieSet(String key, String value, int mm,
-                                       HttpServletResponse response, HttpServletRequest request) {
+    public static final void CookieSet(String key, String value, int mm, HttpServletResponse response, HttpServletRequest request) {
 
         if (key == null || value == null) {
             return;

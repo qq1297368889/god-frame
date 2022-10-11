@@ -16,7 +16,7 @@ public class Auto {
         // 2019-10-09
         //pay_system
         //gzb_system
-        generate(null, "pay_system", "*", true,true);
+        generate(null, "gzb_system", "*", true,true);
     }
 
     /**
@@ -139,6 +139,7 @@ class AutoHump {
     public static String dataBaseCode(List<DB_entity> list) {
         String code0 = "";
         String code1 = "";
+        String code2 = "";
         for (DB_entity entity : list) {
             String 表名大写 = lowStr_d(entity.name);
             String 表名小写 = lowStr_x(entity.name);
@@ -152,7 +153,7 @@ class AutoHump {
             String 表名小写 = lowStr_x(entity.name);
             String id = (lowStr_x(entity.id));
             if (entity.idType.equals("java.lang.Integer")){
-                code1 +="                        Cache.gzbCache.set(\"db_"+表名小写+"_"+id+"_auto_incr\", db.getMaxId_db_private(\""+表名小写+"\", \""+id+"\").toString());\n";
+                code2 +="            Cache.gzbCache.set(\"db_"+表名小写+"_"+id+"_auto_incr\", String.valueOf(db.getMaxId_db_private(\""+表名小写+"\", \""+id+"\")));\n";
             }
         }
 
@@ -178,6 +179,7 @@ class AutoHump {
                 "    public static DB db = new DB(\"" + dbName + "\");\n" +
                 "    static {\n" +
                 "        try {\n" +
+                code2+
                 "            ThreadPool.start(new GzbThread() {\n" +
                 "                @Override\n" +
                 "                public void start() throws Exception {\n" +
@@ -1631,14 +1633,24 @@ class AutoOriginal {
     public static String dataBaseCode(List<DB_entity> list) {
         String code0 = "";
         String code1 = "";
+        String code2 = "";
         for (DB_entity entity : list) {
             String 表名大写 = lowStr_d(entity.name);
             String 表名小写 = lowStr_x(entity.name);
             String id = (lowStr_x(entity.id));
             code0 += "    public static String " + lowStr_hump(表名小写) + "Name=\"" + 表名小写 + "\";\n";
-            code1 += "            Cache.gzbCache.set(\"db_"+表名小写+"_"+id+"_auto_incr\", db.getMaxId_db_private(\""+表名小写+"\", \""+id+"\").toString());\n" +
-                    "                        " + lowStr_hump(表名小写) + "Name = division(" + lowStr_hump(表名小写) + "Name,Tools.configGetInteger(\"gzb.db." + dbName + ".division." + lowStr_x(entity.name) + "\",\"0\"));\n";
+            code1 += "                        " + lowStr_hump(表名小写) + "Name = division(" + lowStr_hump(表名小写) + "Name,Tools.configGetInteger(\"gzb.db." + dbName + ".division." + lowStr_x(entity.name) + "\",\"0\"));\n";
         }
+
+        for (DB_entity entity : list) {
+            String 表名大写 = lowStr_d(entity.name);
+            String 表名小写 = lowStr_x(entity.name);
+            String id = (lowStr_x(entity.id));
+            if (entity.idType.equals("java.lang.Integer")){
+                code2 +="            Cache.gzbCache.set(\"db_"+表名小写+"_"+id+"_auto_incr\", String.valueOf(db.getMaxId_db_private(\""+表名小写+"\", \""+id+"\")));\n";
+            }
+        }
+
 
         String code = "package gzb.db." + dbName + ";\n" +
                 "\n" +
@@ -1659,6 +1671,7 @@ class AutoOriginal {
 
                 "    static {\n" +
                 "        try {\n" +
+                code2+
                 "            ThreadPool.start(new GzbThread() {\n" +
                 "                @Override\n" +
                 "                public void start() throws Exception {\n" +

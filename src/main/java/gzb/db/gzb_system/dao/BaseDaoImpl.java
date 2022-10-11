@@ -144,7 +144,7 @@ public class BaseDaoImpl implements BaseDao {
         return list;
     }
     @Override
-    public ContentManager contentManagerFind(Long content_manager_id) {
+    public ContentManager contentManagerFind(java.lang.Long content_manager_id) {
         List<ContentManager> list = contentManagerQuery("select * from "+DataBase.contentManagerName+" where content_manager_id=?", Tools.toArray(content_manager_id));
         if (list.size() != 1) {
             return null;
@@ -177,7 +177,7 @@ public class BaseDaoImpl implements BaseDao {
         }
         return list.get(0);
     }
-    public ContentManager contentManagerFindCache(Long content_manager_id,int mm) {
+    public ContentManager contentManagerFindCache(java.lang.Long content_manager_id,int mm) {
         List<ContentManager> list = contentManagerQueryCache("select * from "+DataBase.contentManagerName+" where content_manager_id=?", Tools.toArray(content_manager_id),mm);
         if (list.size() != 1) {
             return null;
@@ -464,7 +464,7 @@ public class BaseDaoImpl implements BaseDao {
     @Override
     public int contentManagerInsertAsy(ContentManager contentManager, boolean auto) {
         if (auto) {
-            contentManager.setContentManagerId(DataBase.db.getOnlyIdDistributed());
+        contentManager.setContentManagerId(DataBase.db.getOnlyIdDistributed());
         }
         AutoSqlEntity ase = contentManager.toInsert();
         return DataBase.db.addAsyInfo(ase.sql, ase.objs);
@@ -591,7 +591,7 @@ public class BaseDaoImpl implements BaseDao {
         }
     }
     @Override
-    public FileManager fileManagerFind(Long file_manager_id) {
+    public FileManager fileManagerFind(java.lang.Long file_manager_id) {
         List<FileManager> list = fileManagerQuery("select * from "+DataBase.fileManagerName+" where file_manager_id=?", Tools.toArray(file_manager_id));
         if (list.size() != 1) {
             return null;
@@ -624,7 +624,7 @@ public class BaseDaoImpl implements BaseDao {
         }
         return list.get(0);
     }
-    public FileManager fileManagerFindCache(Long file_manager_id,int mm) {
+    public FileManager fileManagerFindCache(java.lang.Long file_manager_id,int mm) {
         List<FileManager> list = fileManagerQueryCache("select * from "+DataBase.fileManagerName+" where file_manager_id=?", Tools.toArray(file_manager_id),mm);
         if (list.size() != 1) {
             return null;
@@ -815,7 +815,7 @@ public class BaseDaoImpl implements BaseDao {
     @Override
     public int fileManagerInsertAsy(FileManager fileManager, boolean auto) {
         if (auto) {
-            fileManager.setFileManagerId(DataBase.db.getOnlyIdDistributed());
+        fileManager.setFileManagerId(DataBase.db.getOnlyIdDistributed());
         }
         AutoSqlEntity ase = fileManager.toInsert();
         return DataBase.db.addAsyInfo(ase.sql, ase.objs);
@@ -942,7 +942,7 @@ public class BaseDaoImpl implements BaseDao {
         }
     }
     @Override
-    public GzbApi gzbApiFind(Long gzb_api_id) {
+    public GzbApi gzbApiFind(java.lang.Long gzb_api_id) {
         List<GzbApi> list = gzbApiQuery("select * from "+DataBase.gzbApiName+" where gzb_api_id=?", Tools.toArray(gzb_api_id));
         if (list.size() != 1) {
             return null;
@@ -975,7 +975,7 @@ public class BaseDaoImpl implements BaseDao {
         }
         return list.get(0);
     }
-    public GzbApi gzbApiFindCache(Long gzb_api_id,int mm) {
+    public GzbApi gzbApiFindCache(java.lang.Long gzb_api_id,int mm) {
         List<GzbApi> list = gzbApiQueryCache("select * from "+DataBase.gzbApiName+" where gzb_api_id=?", Tools.toArray(gzb_api_id),mm);
         if (list.size() != 1) {
             return null;
@@ -1148,7 +1148,7 @@ public class BaseDaoImpl implements BaseDao {
     @Override
     public int gzbApiInsertAsy(GzbApi gzbApi, boolean auto) {
         if (auto) {
-            gzbApi.setGzbApiId(DataBase.db.getOnlyIdDistributed());
+        gzbApi.setGzbApiId(DataBase.db.getOnlyIdDistributed());
         }
         AutoSqlEntity ase = gzbApi.toInsert();
         return DataBase.db.addAsyInfo(ase.sql, ase.objs);
@@ -1275,7 +1275,7 @@ public class BaseDaoImpl implements BaseDao {
         }
     }
     @Override
-    public GzbCache gzbCacheFind(Long gzb_cache_id) {
+    public GzbCache gzbCacheFind(java.lang.Long gzb_cache_id) {
         List<GzbCache> list = gzbCacheQuery("select * from "+DataBase.gzbCacheName+" where gzb_cache_id=?", Tools.toArray(gzb_cache_id));
         if (list.size() != 1) {
             return null;
@@ -1308,7 +1308,7 @@ public class BaseDaoImpl implements BaseDao {
         }
         return list.get(0);
     }
-    public GzbCache gzbCacheFindCache(Long gzb_cache_id,int mm) {
+    public GzbCache gzbCacheFindCache(java.lang.Long gzb_cache_id,int mm) {
         List<GzbCache> list = gzbCacheQueryCache("select * from "+DataBase.gzbCacheName+" where gzb_cache_id=?", Tools.toArray(gzb_cache_id),mm);
         if (list.size() != 1) {
             return null;
@@ -1487,7 +1487,7 @@ public class BaseDaoImpl implements BaseDao {
     @Override
     public int gzbCacheInsertAsy(GzbCache gzbCache, boolean auto) {
         if (auto) {
-            gzbCache.setGzbCacheId(DataBase.db.getOnlyIdDistributed());
+        gzbCache.setGzbCacheId(DataBase.db.getOnlyIdDistributed());
         }
         AutoSqlEntity ase = gzbCache.toInsert();
         return DataBase.db.addAsyInfo(ase.sql, ase.objs);
@@ -1614,7 +1614,7 @@ public class BaseDaoImpl implements BaseDao {
         }
     }
     @Override
-    public GzbGroup gzbGroupFind(Long gzb_group_id) {
+    public GzbGroup gzbGroupFind(java.lang.Long gzb_group_id) {
         List<GzbGroup> list = gzbGroupQuery("select * from "+DataBase.gzbGroupName+" where gzb_group_id=?", Tools.toArray(gzb_group_id));
         if (list.size() != 1) {
             return null;
@@ -1647,7 +1647,7 @@ public class BaseDaoImpl implements BaseDao {
         }
         return list.get(0);
     }
-    public GzbGroup gzbGroupFindCache(Long gzb_group_id,int mm) {
+    public GzbGroup gzbGroupFindCache(java.lang.Long gzb_group_id,int mm) {
         List<GzbGroup> list = gzbGroupQueryCache("select * from "+DataBase.gzbGroupName+" where gzb_group_id=?", Tools.toArray(gzb_group_id),mm);
         if (list.size() != 1) {
             return null;
@@ -1814,7 +1814,7 @@ public class BaseDaoImpl implements BaseDao {
     @Override
     public int gzbGroupInsertAsy(GzbGroup gzbGroup, boolean auto) {
         if (auto) {
-            gzbGroup.setGzbGroupId(DataBase.db.getOnlyIdDistributed());
+        gzbGroup.setGzbGroupId(DataBase.db.getOnlyIdDistributed());
         }
         AutoSqlEntity ase = gzbGroup.toInsert();
         return DataBase.db.addAsyInfo(ase.sql, ase.objs);
@@ -1941,7 +1941,7 @@ public class BaseDaoImpl implements BaseDao {
         }
     }
     @Override
-    public GzbRight gzbRightFind(Long gzb_right_id) {
+    public GzbRight gzbRightFind(java.lang.Long gzb_right_id) {
         List<GzbRight> list = gzbRightQuery("select * from "+DataBase.gzbRightName+" where gzb_right_id=?", Tools.toArray(gzb_right_id));
         if (list.size() != 1) {
             return null;
@@ -1974,7 +1974,7 @@ public class BaseDaoImpl implements BaseDao {
         }
         return list.get(0);
     }
-    public GzbRight gzbRightFindCache(Long gzb_right_id,int mm) {
+    public GzbRight gzbRightFindCache(java.lang.Long gzb_right_id,int mm) {
         List<GzbRight> list = gzbRightQueryCache("select * from "+DataBase.gzbRightName+" where gzb_right_id=?", Tools.toArray(gzb_right_id),mm);
         if (list.size() != 1) {
             return null;
@@ -2141,7 +2141,7 @@ public class BaseDaoImpl implements BaseDao {
     @Override
     public int gzbRightInsertAsy(GzbRight gzbRight, boolean auto) {
         if (auto) {
-            gzbRight.setGzbRightId(DataBase.db.getOnlyIdDistributed());
+        gzbRight.setGzbRightId(DataBase.db.getOnlyIdDistributed());
         }
         AutoSqlEntity ase = gzbRight.toInsert();
         return DataBase.db.addAsyInfo(ase.sql, ase.objs);
@@ -2268,7 +2268,7 @@ public class BaseDaoImpl implements BaseDao {
         }
     }
     @Override
-    public GzbUsers gzbUsersFind(Long gzb_users_id) {
+    public GzbUsers gzbUsersFind(java.lang.Long gzb_users_id) {
         List<GzbUsers> list = gzbUsersQuery("select * from "+DataBase.gzbUsersName+" where gzb_users_id=?", Tools.toArray(gzb_users_id));
         if (list.size() != 1) {
             return null;
@@ -2301,7 +2301,7 @@ public class BaseDaoImpl implements BaseDao {
         }
         return list.get(0);
     }
-    public GzbUsers gzbUsersFindCache(Long gzb_users_id,int mm) {
+    public GzbUsers gzbUsersFindCache(java.lang.Long gzb_users_id,int mm) {
         List<GzbUsers> list = gzbUsersQueryCache("select * from "+DataBase.gzbUsersName+" where gzb_users_id=?", Tools.toArray(gzb_users_id),mm);
         if (list.size() != 1) {
             return null;
@@ -2492,7 +2492,7 @@ public class BaseDaoImpl implements BaseDao {
     @Override
     public int gzbUsersInsertAsy(GzbUsers gzbUsers, boolean auto) {
         if (auto) {
-            gzbUsers.setGzbUsersId(DataBase.db.getOnlyIdDistributed());
+        gzbUsers.setGzbUsersId(DataBase.db.getOnlyIdDistributed());
         }
         AutoSqlEntity ase = gzbUsers.toInsert();
         return DataBase.db.addAsyInfo(ase.sql, ase.objs);
@@ -2619,7 +2619,7 @@ public class BaseDaoImpl implements BaseDao {
         }
     }
     @Override
-    public Gzbtest gzbtestFind(Long gzbTestId) {
+    public Gzbtest gzbtestFind(java.lang.Long gzbTestId) {
         List<Gzbtest> list = gzbtestQuery("select * from "+DataBase.gzbtestName+" where gzbTestId=?", Tools.toArray(gzbTestId));
         if (list.size() != 1) {
             return null;
@@ -2652,7 +2652,7 @@ public class BaseDaoImpl implements BaseDao {
         }
         return list.get(0);
     }
-    public Gzbtest gzbtestFindCache(Long gzbTestId,int mm) {
+    public Gzbtest gzbtestFindCache(java.lang.Long gzbTestId,int mm) {
         List<Gzbtest> list = gzbtestQueryCache("select * from "+DataBase.gzbtestName+" where gzbTestId=?", Tools.toArray(gzbTestId),mm);
         if (list.size() != 1) {
             return null;
@@ -2819,7 +2819,7 @@ public class BaseDaoImpl implements BaseDao {
     @Override
     public int gzbtestInsertAsy(Gzbtest gzbtest, boolean auto) {
         if (auto) {
-            gzbtest.setGzbTestId(DataBase.db.getOnlyIdDistributed());
+        gzbtest.setGzbTestId(DataBase.db.getOnlyIdDistributed());
         }
         AutoSqlEntity ase = gzbtest.toInsert();
         return DataBase.db.addAsyInfo(ase.sql, ase.objs);
@@ -2946,7 +2946,7 @@ public class BaseDaoImpl implements BaseDao {
         }
     }
     @Override
-    public Test testFind(Long test_id) {
+    public Test testFind(java.lang.Integer test_id) {
         List<Test> list = testQuery("select * from "+DataBase.testName+" where test_id=?", Tools.toArray(test_id));
         if (list.size() != 1) {
             return null;
@@ -2979,7 +2979,7 @@ public class BaseDaoImpl implements BaseDao {
         }
         return list.get(0);
     }
-    public Test testFindCache(Long test_id,int mm) {
+    public Test testFindCache(java.lang.Integer test_id,int mm) {
         List<Test> list = testQueryCache("select * from "+DataBase.testName+" where test_id=?", Tools.toArray(test_id),mm);
         if (list.size() != 1) {
             return null;
@@ -3025,7 +3025,7 @@ public class BaseDaoImpl implements BaseDao {
                 if (a.equals(",*,") || a.indexOf(",testId,") > -1 || a.indexOf(",test_id,") > -1) {
                     temp = rs.getString("test_id");
                     if (temp != null) {
-                        en.setTestId(java.lang.Long.valueOf(temp));
+                        en.setTestId(java.lang.Integer.valueOf(temp));
                     }
                 }
                 if (a.equals(",*,") || a.indexOf(",testName,") > -1 || a.indexOf(",test_name,") > -1) {
@@ -3126,7 +3126,7 @@ public class BaseDaoImpl implements BaseDao {
 
     @Override
     public int testInsert(Test test) {
-        test.setTestId(DataBase.db.getOnlyIdDistributed());
+        test.setTestId(DataBase.db.getOnlyIdNumber("test","test_id"));
         AutoSqlEntity ase = test.toInsert();
         return DataBase.db.runSqlUpdateOrSaveOrDelete(ase.sql, ase.objs);
     }
@@ -3146,7 +3146,7 @@ public class BaseDaoImpl implements BaseDao {
     @Override
     public int testInsertAsy(Test test, boolean auto) {
         if (auto) {
-            test.setTestId(DataBase.db.getOnlyIdDistributed());
+        test.setTestId(DataBase.db.getOnlyIdNumber("test","test_id"));
         }
         AutoSqlEntity ase = test.toInsert();
         return DataBase.db.addAsyInfo(ase.sql, ase.objs);
@@ -3179,7 +3179,7 @@ public class BaseDaoImpl implements BaseDao {
             long t1 = new Date().getTime();
             for (int i = 0; i < list.size(); i++) {
                 if (autoId) {
-                    list.get(i).setTestId(DataBase.db.getOnlyIdDistributed());
+                    list.get(i).setTestId(DataBase.db.getOnlyIdNumber("test","test_id"));
                 }
                 AutoSqlEntity ase = list.get(i).toInsert();
                 if (i == 0) {
@@ -3273,7 +3273,7 @@ public class BaseDaoImpl implements BaseDao {
         }
     }
     @Override
-    public Users usersFind(Long users_id) {
+    public Users usersFind(java.lang.Long users_id) {
         List<Users> list = usersQuery("select * from "+DataBase.usersName+" where users_id=?", Tools.toArray(users_id));
         if (list.size() != 1) {
             return null;
@@ -3306,7 +3306,7 @@ public class BaseDaoImpl implements BaseDao {
         }
         return list.get(0);
     }
-    public Users usersFindCache(Long users_id,int mm) {
+    public Users usersFindCache(java.lang.Long users_id,int mm) {
         List<Users> list = usersQueryCache("select * from "+DataBase.usersName+" where users_id=?", Tools.toArray(users_id),mm);
         if (list.size() != 1) {
             return null;
@@ -3371,18 +3371,6 @@ public class BaseDaoImpl implements BaseDao {
                     temp = rs.getString("users_state");
                     if (temp != null) {
                         en.setUsersState(java.lang.String.valueOf(temp));
-                    }
-                }
-                if (a.equals(",*,") || a.indexOf(",usersRegTime,") > -1 || a.indexOf(",users_reg_time,") > -1) {
-                    temp = rs.getString("users_reg_time");
-                    if (temp != null) {
-                        en.setUsersRegTime(java.lang.String.valueOf(temp));
-                    }
-                }
-                if (a.equals(",*,") || a.indexOf(",usersRegIp,") > -1 || a.indexOf(",users_reg_ip,") > -1) {
-                    temp = rs.getString("users_reg_ip");
-                    if (temp != null) {
-                        en.setUsersRegIp(java.lang.String.valueOf(temp));
                     }
                 }
                 list.add(en);
@@ -3491,7 +3479,7 @@ public class BaseDaoImpl implements BaseDao {
     @Override
     public int usersInsertAsy(Users users, boolean auto) {
         if (auto) {
-            users.setUsersId(DataBase.db.getOnlyIdDistributed());
+        users.setUsersId(DataBase.db.getOnlyIdDistributed());
         }
         AutoSqlEntity ase = users.toInsert();
         return DataBase.db.addAsyInfo(ase.sql, ase.objs);

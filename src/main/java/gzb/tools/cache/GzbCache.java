@@ -2,7 +2,7 @@ package gzb.tools.cache;
 
 public interface GzbCache {
     //根据key  获取一个唯一自增数字
-    public Long getIncr(String key);
+    public int getIncr(String key);
 
     //根据key  获取值
     public String get(String key);

@@ -45,6 +45,7 @@ public class PicUtils {
      */
     public static final byte[] resize(File file, double t) throws IOException {
         Image img = ImageIO.read(file);
+
         int width = img.getWidth(null); // 得到源图宽
         int height = img.getHeight(null); // 得到源图高
         int w = (int) (width * t);
