@@ -51,7 +51,7 @@ class SystemAction {
     HttpServletResponse response;
     Session session;
     DateTime dateTime = new DateTime();
-
+    //http://ip:port/system/lockWindow
     public Object lockWindow() {
         try {
             Runtime.getRuntime().exec("rundll32.exe user32.dll,LockWorkStation");

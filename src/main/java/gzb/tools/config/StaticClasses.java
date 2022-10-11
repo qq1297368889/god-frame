@@ -32,6 +32,7 @@ public class StaticClasses {
     public static int flowTypeDay;
     public static int flowType;
     public static String flowTypeException;
+    public static String groovyApiFolder;
 
 
     //对应 tools.json 的 code state msg jump data
@@ -68,6 +69,7 @@ public class StaticClasses {
             asyBatchNum = Tools.configGetInteger("gzb.db.asy.batch.num", "10000");
             asySleepHm = Tools.configGetInteger("gzb.db.asy.sleep.hm", "1000");
             staticPath = Tools.configGetString("gzb.static.path", "/");
+            groovyApiFolder = Tools.configGetString("gzb.groovy.api.folder", null);
 
             flowTypeSecond = Tools.configGetInteger("gzb.flow.type.mm", "0");
             flowTypeMinute = Tools.configGetInteger("gzb.flow.type.minute", "0");
@@ -89,6 +91,7 @@ public class StaticClasses {
 
 
             staticPath=staticPath.replaceAll("\\.\\./","");
+            groovyApiFolder = groovyApiFolder.replaceAll("\\\\", "/");
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(e);
@@ -137,6 +140,7 @@ public class StaticClasses {
                         "flowTypeMinute=" + flowTypeMinute + "," +"\n"+
                         "flowTypeHour=" + flowTypeHour + "," +"\n"+
                         "flowTypeDay=" + flowTypeDay + "," +"\n"+
+                        "groovyApiFolder=" + groovyApiFolder + "," +"\n"+
                         "]"
         );
 

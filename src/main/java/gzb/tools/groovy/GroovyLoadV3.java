@@ -22,9 +22,6 @@ import java.util.Map;
 public class GroovyLoadV3 {
     public static Map<String, GroovyLoadV2Entity> groovyClassMap = new HashMap<>();
     public static Map<String, String> fileName_webPath = new HashMap<>();
-    private static GroovyObject object;
-    private static String groovyPackage;
-
     static {
         init();
     }
@@ -32,8 +29,7 @@ public class GroovyLoadV3 {
 
     public static final void init() {
         try {
-            groovyPackage = Tools.configGetString("gzb.groovyPackage", "defVal");
-            groovyPackage = groovyPackage.replaceAll("\\\\", "/");
+            String  groovyPackage = StaticClasses.groovyApiFolder;
             String[] ss1 = groovyPackage.split(",");
             for (String folder : ss1) {
                 loadFolder(folder,true);
@@ -61,7 +57,6 @@ public class GroovyLoadV3 {
                                         }
                                     }
                                 }
-                                //fileName_webPath.put(file.getParent()+"/"+file.getName(),webPath.toString());
                                 Thread.sleep(1000);
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -248,30 +243,12 @@ public class GroovyLoadV3 {
         List<String> list_name;
         Class[] classes;
         if (entity == null) {
-            return null;
-        }
-        if (name.equals("main")
-                || name.equals("getMetaClass")
-                || name.equals("setMetaClass")
-                || name.indexOf("$") > -1
-                || name.equals("wait")
-                || name.equals("equals")
-                || name.equals("toString")
-                || name.equals("hashCode")
-                || name.equals("getClass")
-                || name.equals("notify")
-                || name.equals("notifyAll")
-                || name.equals("getProperty")
-                || name.equals("setProperty")
-                || name.equals("invokeMethod")
-                || name.equals("find")
-                || name.substring(0, 3).equals("get")
-                || name.substring(0, 3).equals("set")
-
-        ) {
-            return Tools.jsonFail("API:404");
+            return Tools.jsonFail("API:400");
         }
 
+        if (isShield(name)) {
+            return Tools.jsonFail("API:400");
+        }
         if (entity.parameterName == null) {
             list_name = new ArrayList<>();
         } else {
