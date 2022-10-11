@@ -137,9 +137,6 @@ class SystemAction {
 
     public Object readUserInfo(Integer all) {
         try {
-            if (all == null) {
-                return "{\"code\":\"0\",\"state\":\"1\",\"message\":\"获取用户信息成功\",\"jump\":\"\",\"data\":{\"gzbUsersAcc\":\"123456\",\"gzbUsersPhone\":\"12345678954\",\"gzbUsersMailbox\":\"123@qq.com\",\"gzbUsersTime\":\"2022-10-08 07:46:02\"}}";
-            }
             GzbUsers gzbUsers = getLoginInfo();
             if (gzbUsers == null) {
                 return Tools.jsonJump(StaticClasses.loginPage);
