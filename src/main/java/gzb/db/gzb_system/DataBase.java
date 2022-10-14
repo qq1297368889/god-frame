@@ -23,13 +23,9 @@ public class DataBase {
     public static String gzbGroupName="gzb_group";
     public static String gzbRightName="gzb_right";
     public static String gzbUsersName="gzb_users";
-    public static String gzbtestName="gzbtest";
-    public static String testName="test";
-    public static String usersName="users";
     public static DB db = new DB("gzb_system");
     static {
         try {
-            Cache.gzbCache.set("db_test_test_id_auto_incr", String.valueOf(db.getMaxId_db_private("test", "test_id")));
             ThreadPool.start(new GzbThread() {
                 @Override
                 public void start() throws Exception {
@@ -41,9 +37,6 @@ public class DataBase {
                         gzbGroupName = division(gzbGroupName,Tools.configGetInteger("gzb.db.gzb_system.division.gzb_group","0"));
                         gzbRightName = division(gzbRightName,Tools.configGetInteger("gzb.db.gzb_system.division.gzb_right","0"));
                         gzbUsersName = division(gzbUsersName,Tools.configGetInteger("gzb.db.gzb_system.division.gzb_users","0"));
-                        gzbtestName = division(gzbtestName,Tools.configGetInteger("gzb.db.gzb_system.division.gzbtest","0"));
-                        testName = division(testName,Tools.configGetInteger("gzb.db.gzb_system.division.test","0"));
-                        usersName = division(usersName,Tools.configGetInteger("gzb.db.gzb_system.division.users","0"));
                         sleep(1000*60);
                     }
                 }
