@@ -12,7 +12,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 
-public class LogImpl implements Log {
+public class LogImpl implements Log{
     static StringBuffer infoLog = new StringBuffer();
     static StringBuffer exceptionLog = new StringBuffer();
     static StringBuffer sqlLog = new StringBuffer();
@@ -73,15 +73,15 @@ public class LogImpl implements Log {
 
 
                             file_sql_log = sqlLog.toString();
-                            sqlLog = new StringBuffer();
+                            sqlLog = new StringBuffer(1024);
                             file_info_log = infoLog.toString();
-                            infoLog = new StringBuffer();
+                            infoLog = new StringBuffer(1024);
                             file_exception_log = exceptionLog.toString();
-                            exceptionLog = new StringBuffer();
+                            exceptionLog = new StringBuffer(1024);
                             file_request_log = requestLog.toString();
-                            requestLog = new StringBuffer();
+                            requestLog = new StringBuffer(1024);
                             file_requestException_log = requestExceptionLog.toString();
-                            requestExceptionLog = new StringBuffer();
+                            requestExceptionLog = new StringBuffer(1024);
                             Tools.fileSaveString(file_sql, file_sql_log == null ? "" : file_sql_log, true);
                             Tools.fileSaveString(file_info, file_info_log == null ? "" : file_info_log, true);
                             Tools.fileSaveString(file_exception, file_exception_log == null ? "" : file_exception_log, true);
@@ -109,7 +109,7 @@ public class LogImpl implements Log {
     }
 
     public LogImpl(Class class1) {
-        className = class1.getName();
+        className = class1.getSimpleName();
     }
 
     public LogImpl() {
@@ -118,12 +118,16 @@ public class LogImpl implements Log {
 
     private void append(StringBuffer sb, Object log) {
         StringBuffer sb_prv = new StringBuffer();
-        sb_prv.append(new DateTime().formatDateTime())
-                .append(" : ")
+        sb_prv
+                .append(new DateTime().formatDateTime())
+                .append("|Thread:")
+                .append(Thread.currentThread().getName())
+                .append("|class:")
                 .append(className)
-                .append(" : ")
+                .append("|")
                 .append(log)
                 .append("\r\n");
+
         if (StaticClasses.showLog) {
             System.out.print(sb_prv.toString());
         }

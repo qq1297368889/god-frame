@@ -24,14 +24,16 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @WebServlet("/*")
 @MultipartConfig
 public class Controller extends HttpServlet {
-    static Log log = new LogImpl(Controller.class);
+    static int thisFlow = 0;
+    static Lock lock = new ReentrantLock();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -52,23 +54,7 @@ public class Controller extends HttpServlet {
             while (url.indexOf("//") > -1) {
                 url = url.replaceAll("//", "/");
             }
-            if (StaticClasses.flowType == 3) {
-                if (!flowLimit(url)) {
-                    response.setStatus(403);
-                    return;
-                }
-            }
             String[] arr1 = url.split("/");
-            if (arr1.length < 2) {
-                if (StaticClasses.flowType == 2) {
-                    if (!flowLimit(url)) {
-                        response.setStatus(403);
-                        return;
-                    }
-                }
-                staticFun(request, response, url);
-                return;
-            }
             StringBuilder sb = new StringBuilder();
             sb.append('/');
             for (int i = 1; i < arr1.length - 1; i++) {
@@ -76,20 +62,16 @@ public class Controller extends HttpServlet {
             }
             GroovyReturnEntity groovyReturnEntity = GroovyLoadV3.newObject(sb.toString());
             if (groovyReturnEntity == null) {
-                if (StaticClasses.flowType == 2) {
-                    if (!flowLimit(url)) {
-                        response.setStatus(403);
-                        return;
-                    }
+                if (flowStaticLimit()) {
+                    response.setStatus(403);
+                    return;
                 }
                 staticFun(request, response, url);
                 return;
             }
-            if (StaticClasses.flowType == 1) {
-                if (!flowLimit(url)) {
-                    response.setStatus(403);
-                    return;
-                }
+            if (flowApiLimit()) {
+                response.setStatus(403);
+                return;
             }
             if (groovyReturnEntity.entity.crossDomain) {
                 response.setHeader("Access-Control-Allow-Origin", "*");
@@ -100,23 +82,10 @@ public class Controller extends HttpServlet {
                 response.setHeader("Access-Control-Max-Age", "180");
                 response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
             }
-            Map<String, Object[]> map = new HashMap<>();
-            Map<String, String[]> map_str = request.getParameterMap();
-            for (Map.Entry<String, String[]> en : map_str.entrySet()) {
-                String[] ss1 = en.getValue();
-                if (ss1 == null || ss1.length < 1) {
-                    continue;
-                }
-                Object[] objs = new Object[ss1.length];
-                for (int i = 0; i < ss1.length; i++) {
-                    objs[i] = ss1[i];
-                }
-                map.put(en.getKey(), objs);
-            }
             GroovyLoadV3.setVariable(groovyReturnEntity, "request", request);
             GroovyLoadV3.setVariable(groovyReturnEntity, "response", response);
             GroovyLoadV3.setVariable(groovyReturnEntity, "session", SessionTool.getSession(request, response, StaticClasses.sessionUseTime));
-            Object object = GroovyLoadV3.call(groovyReturnEntity, arr1[arr1.length - 1], map);
+            Object object = GroovyLoadV3.callWeb(groovyReturnEntity, arr1[arr1.length - 1], request.getParameterMap(), request);
             if (object != null) {
                 sendData(request, response, object.toString(), groovyReturnEntity);
                 return;
@@ -125,6 +94,15 @@ public class Controller extends HttpServlet {
             e.printStackTrace();
             response.setStatus(404);
             return;
+        } finally {
+            if (StaticClasses.flowStaticMax > 0 || StaticClasses.flowApiMax > 0) {
+                lock.lock();
+                try {
+                    if (thisFlow>0)thisFlow--;
+                } finally {
+                    lock.unlock();
+                }
+            }
         }
     }
 
@@ -149,6 +127,7 @@ public class Controller extends HttpServlet {
         }
         File file = new File(StaticClasses.staticPath + url);
         if (file.exists()) {
+            response.setHeader("Cache-Control", "public,max-age=3600");
             try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
                 Path path = file.toPath();
                 response.setHeader("Content-Type", Files.probeContentType(path));
@@ -168,42 +147,39 @@ public class Controller extends HttpServlet {
     }
 
 
-    public boolean flowLimit(String path) {
-        DateTime dateTime = new DateTime();
-        //yyyy年MM月dd号HH点mm分ss秒
-        String[] ss1 = path.split("\\.");
-        if (StaticClasses.flowTypeException.indexOf(ss1[ss1.length - 1] + "/") > -1) {
-            return true;
+    public boolean flowStaticLimit() {
+        if (StaticClasses.flowStaticMax == 0) {
+            return false;
         }
-        int a = 0;
-        if (StaticClasses.flowTypeSecond > 0) {
-            a = Cache.gzbCache.getIncr(dateTime.format("yyyy-MM-dd-HH-mm-ss") + "_" + path);
-            if (a > StaticClasses.flowTypeSecond) {
-                log.i("触发 秒级限流");
+        lock.lock();
+        try {
+            if (thisFlow >= StaticClasses.flowStaticMax) {
+                thisFlow++;
+                return true;
+            } else {
+                thisFlow++;
                 return false;
             }
+        } finally {
+            lock.unlock();
         }
-        if (StaticClasses.flowTypeMinute > 0) {
-            a = Cache.gzbCache.getIncr(dateTime.format("yyyy-MM-dd-HH-mm") + "_" + path);
-            if (a > StaticClasses.flowTypeMinute) {
-                log.i("触发 分级限流");
+    }
+
+    public boolean flowApiLimit() {
+        if (StaticClasses.flowApiMax == 0) {
+            return false;
+        }
+        lock.lock();
+        try {
+            if (thisFlow >= StaticClasses.flowApiMax) {
+                thisFlow++;
+                return true;
+            } else {
+                thisFlow++;
                 return false;
             }
+        } finally {
+            lock.unlock();
         }
-        if (StaticClasses.flowTypeHour > 0) {
-            a = Cache.gzbCache.getIncr(dateTime.format("yyyy-MM-dd-HH") + "_" + path);
-            if (a > StaticClasses.flowTypeHour) {
-                log.i("触发 时级限流");
-                return false;
-            }
-        }
-        if (StaticClasses.flowTypeDay > 0) {
-            a = Cache.gzbCache.getIncr(dateTime.format("yyyy-MM-dd") + "_" + path);
-            if (a > StaticClasses.flowTypeDay) {
-                log.i("出发天级限流");
-                return false;
-            }
-        }
-        return true;
     }
 }

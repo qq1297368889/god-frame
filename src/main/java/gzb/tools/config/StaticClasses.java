@@ -22,16 +22,14 @@ public class StaticClasses {
     public static String groovyLoadUrl;
     public static String loginPage;
     public static String uploadPath;
+    public static String uploadPathTmp;
     public static String staticPath;
     public static int asyBatchNum;
     public static int asySleepHm;
 
-    public static int flowTypeSecond;
-    public static int flowTypeMinute;
-    public static int flowTypeHour;
-    public static int flowTypeDay;
-    public static int flowType;
-    public static String flowTypeException;
+    public static int flowApiMax;
+    public static int flowStaticMax;
+
     public static String groovyApiFolder;
 
 
@@ -64,20 +62,17 @@ public class StaticClasses {
             showLog = Tools.configGetBoolean("gzb.log.showLog", "false");
             devName = Tools.configGetInteger("gzb.devName", "100");
             groovyLoadType = Tools.configGetString("gzb.groovy.load.type", "no");
-            groovyLoadUrl = Tools.configGetString("gzb.groovy.load.url", "/");
-            uploadPath = Tools.configGetString("gzb.upload.path", "/");
+            groovyLoadUrl = Tools.configGetString("gzb.groovy.load.url", null);
+            uploadPath = Tools.configGetString("gzb.upload.path", System.getProperty("java.io.tmpdir"));
+            uploadPathTmp = Tools.configGetString("gzb.upload.path.tmp", System.getProperty("java.io.tmpdir"));
+
             asyBatchNum = Tools.configGetInteger("gzb.db.asy.batch.num", "10000");
             asySleepHm = Tools.configGetInteger("gzb.db.asy.sleep.hm", "1000");
-            staticPath = Tools.configGetString("gzb.static.path", "/");
+            staticPath = Tools.configGetString("gzb.static.path", null);
             groovyApiFolder = Tools.configGetString("gzb.groovy.api.folder", null);
 
-            flowTypeSecond = Tools.configGetInteger("gzb.flow.type.mm", "0");
-            flowTypeMinute = Tools.configGetInteger("gzb.flow.type.minute", "0");
-            flowTypeHour = Tools.configGetInteger("gzb.flow.type.hour", "0");
-            flowTypeDay = Tools.configGetInteger("gzb.flow.type.day", "0");
-            flowType = Tools.configGetInteger("gzb.flow.type", "1");
-            flowTypeException = Tools.configGetString("gzb.flow.type.exception", ".css/.js/.ts");
-
+            flowApiMax = Tools.configGetInteger("gzb.flow.api.max", "0");
+            flowStaticMax = Tools.configGetInteger("gzb.flow.static.max", "0");
 
             json_code = Tools.configGetString("gzb.json.code", "code");
             json_state = Tools.configGetString("gzb.json.state", "state");
@@ -136,12 +131,12 @@ public class StaticClasses {
                         "json_entity_data=" + json_entity_data + "," +"\n"+
                         "devName=" + devName + "," +"\n"+
                         "staticPath=" + staticPath + "," +"\n"+
-                        "flowTypeSecond=" + flowTypeSecond + "," +"\n"+
-                        "flowTypeMinute=" + flowTypeMinute + "," +"\n"+
-                        "flowTypeHour=" + flowTypeHour + "," +"\n"+
-                        "flowTypeDay=" + flowTypeDay + "," +"\n"+
+                        "flowApiMax=" + flowApiMax + "," +"\n"+
+                        "flowStaticMax=" + flowStaticMax + "," +"\n"+
                         "groovyApiFolder=" + groovyApiFolder + "," +"\n"+
                         "]"
+
+
         );
 
 

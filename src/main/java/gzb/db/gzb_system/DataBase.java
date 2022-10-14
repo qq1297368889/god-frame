@@ -54,7 +54,7 @@ public class DataBase {
                         e.printStackTrace();
                     }
                 }
-            }); 
+            },"gzb_system.division", false,1); 
         } catch (Exception e) {
             e.printStackTrace();
         } 

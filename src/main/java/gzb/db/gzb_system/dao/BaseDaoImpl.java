@@ -177,8 +177,8 @@ public class BaseDaoImpl implements BaseDao {
         }
         return list.get(0);
     }
-    public ContentManager contentManagerFindCache(java.lang.Long content_manager_id,int mm) {
-        List<ContentManager> list = contentManagerQueryCache("select * from "+DataBase.contentManagerName+" where content_manager_id=?", Tools.toArray(content_manager_id),mm);
+    public ContentManager contentManagerFindCache(java.lang.Long contentManagerId,int mm) {
+        List<ContentManager> list = contentManagerQueryCache("select * from "+DataBase.contentManagerName+" where content_manager_id=?", Tools.toArray(contentManagerId),mm);
         if (list.size() != 1) {
             return null;
         }
@@ -483,12 +483,12 @@ public class BaseDaoImpl implements BaseDao {
     }
 
     @Override
-    public int contentManagerBatch(List<ContentManager> list) {
-        return contentManagerBatch(list, true);
+    public int contentManagerInsertBatch(List<ContentManager> list) {
+        return contentManagerInsertBatch(list, true);
     }
 
     @Override
-    public int contentManagerBatch(List<ContentManager> list, boolean autoId) {
+    public int contentManagerInsertBatch(List<ContentManager> list, boolean autoId) {
         Connection conn = null;
         ResultSet rs = null;
         PreparedStatement ps = null;
@@ -624,8 +624,8 @@ public class BaseDaoImpl implements BaseDao {
         }
         return list.get(0);
     }
-    public FileManager fileManagerFindCache(java.lang.Long file_manager_id,int mm) {
-        List<FileManager> list = fileManagerQueryCache("select * from "+DataBase.fileManagerName+" where file_manager_id=?", Tools.toArray(file_manager_id),mm);
+    public FileManager fileManagerFindCache(java.lang.Long fileManagerId,int mm) {
+        List<FileManager> list = fileManagerQueryCache("select * from "+DataBase.fileManagerName+" where file_manager_id=?", Tools.toArray(fileManagerId),mm);
         if (list.size() != 1) {
             return null;
         }
@@ -834,12 +834,12 @@ public class BaseDaoImpl implements BaseDao {
     }
 
     @Override
-    public int fileManagerBatch(List<FileManager> list) {
-        return fileManagerBatch(list, true);
+    public int fileManagerInsertBatch(List<FileManager> list) {
+        return fileManagerInsertBatch(list, true);
     }
 
     @Override
-    public int fileManagerBatch(List<FileManager> list, boolean autoId) {
+    public int fileManagerInsertBatch(List<FileManager> list, boolean autoId) {
         Connection conn = null;
         ResultSet rs = null;
         PreparedStatement ps = null;
@@ -975,8 +975,8 @@ public class BaseDaoImpl implements BaseDao {
         }
         return list.get(0);
     }
-    public GzbApi gzbApiFindCache(java.lang.Long gzb_api_id,int mm) {
-        List<GzbApi> list = gzbApiQueryCache("select * from "+DataBase.gzbApiName+" where gzb_api_id=?", Tools.toArray(gzb_api_id),mm);
+    public GzbApi gzbApiFindCache(java.lang.Long gzbApiId,int mm) {
+        List<GzbApi> list = gzbApiQueryCache("select * from "+DataBase.gzbApiName+" where gzb_api_id=?", Tools.toArray(gzbApiId),mm);
         if (list.size() != 1) {
             return null;
         }
@@ -1167,12 +1167,12 @@ public class BaseDaoImpl implements BaseDao {
     }
 
     @Override
-    public int gzbApiBatch(List<GzbApi> list) {
-        return gzbApiBatch(list, true);
+    public int gzbApiInsertBatch(List<GzbApi> list) {
+        return gzbApiInsertBatch(list, true);
     }
 
     @Override
-    public int gzbApiBatch(List<GzbApi> list, boolean autoId) {
+    public int gzbApiInsertBatch(List<GzbApi> list, boolean autoId) {
         Connection conn = null;
         ResultSet rs = null;
         PreparedStatement ps = null;
@@ -1308,8 +1308,8 @@ public class BaseDaoImpl implements BaseDao {
         }
         return list.get(0);
     }
-    public GzbCache gzbCacheFindCache(java.lang.Long gzb_cache_id,int mm) {
-        List<GzbCache> list = gzbCacheQueryCache("select * from "+DataBase.gzbCacheName+" where gzb_cache_id=?", Tools.toArray(gzb_cache_id),mm);
+    public GzbCache gzbCacheFindCache(java.lang.Long gzbCacheId,int mm) {
+        List<GzbCache> list = gzbCacheQueryCache("select * from "+DataBase.gzbCacheName+" where gzb_cache_id=?", Tools.toArray(gzbCacheId),mm);
         if (list.size() != 1) {
             return null;
         }
@@ -1506,12 +1506,12 @@ public class BaseDaoImpl implements BaseDao {
     }
 
     @Override
-    public int gzbCacheBatch(List<GzbCache> list) {
-        return gzbCacheBatch(list, true);
+    public int gzbCacheInsertBatch(List<GzbCache> list) {
+        return gzbCacheInsertBatch(list, true);
     }
 
     @Override
-    public int gzbCacheBatch(List<GzbCache> list, boolean autoId) {
+    public int gzbCacheInsertBatch(List<GzbCache> list, boolean autoId) {
         Connection conn = null;
         ResultSet rs = null;
         PreparedStatement ps = null;
@@ -1647,8 +1647,8 @@ public class BaseDaoImpl implements BaseDao {
         }
         return list.get(0);
     }
-    public GzbGroup gzbGroupFindCache(java.lang.Long gzb_group_id,int mm) {
-        List<GzbGroup> list = gzbGroupQueryCache("select * from "+DataBase.gzbGroupName+" where gzb_group_id=?", Tools.toArray(gzb_group_id),mm);
+    public GzbGroup gzbGroupFindCache(java.lang.Long gzbGroupId,int mm) {
+        List<GzbGroup> list = gzbGroupQueryCache("select * from "+DataBase.gzbGroupName+" where gzb_group_id=?", Tools.toArray(gzbGroupId),mm);
         if (list.size() != 1) {
             return null;
         }
@@ -1833,12 +1833,12 @@ public class BaseDaoImpl implements BaseDao {
     }
 
     @Override
-    public int gzbGroupBatch(List<GzbGroup> list) {
-        return gzbGroupBatch(list, true);
+    public int gzbGroupInsertBatch(List<GzbGroup> list) {
+        return gzbGroupInsertBatch(list, true);
     }
 
     @Override
-    public int gzbGroupBatch(List<GzbGroup> list, boolean autoId) {
+    public int gzbGroupInsertBatch(List<GzbGroup> list, boolean autoId) {
         Connection conn = null;
         ResultSet rs = null;
         PreparedStatement ps = null;
@@ -1974,8 +1974,8 @@ public class BaseDaoImpl implements BaseDao {
         }
         return list.get(0);
     }
-    public GzbRight gzbRightFindCache(java.lang.Long gzb_right_id,int mm) {
-        List<GzbRight> list = gzbRightQueryCache("select * from "+DataBase.gzbRightName+" where gzb_right_id=?", Tools.toArray(gzb_right_id),mm);
+    public GzbRight gzbRightFindCache(java.lang.Long gzbRightId,int mm) {
+        List<GzbRight> list = gzbRightQueryCache("select * from "+DataBase.gzbRightName+" where gzb_right_id=?", Tools.toArray(gzbRightId),mm);
         if (list.size() != 1) {
             return null;
         }
@@ -2160,12 +2160,12 @@ public class BaseDaoImpl implements BaseDao {
     }
 
     @Override
-    public int gzbRightBatch(List<GzbRight> list) {
-        return gzbRightBatch(list, true);
+    public int gzbRightInsertBatch(List<GzbRight> list) {
+        return gzbRightInsertBatch(list, true);
     }
 
     @Override
-    public int gzbRightBatch(List<GzbRight> list, boolean autoId) {
+    public int gzbRightInsertBatch(List<GzbRight> list, boolean autoId) {
         Connection conn = null;
         ResultSet rs = null;
         PreparedStatement ps = null;
@@ -2301,8 +2301,8 @@ public class BaseDaoImpl implements BaseDao {
         }
         return list.get(0);
     }
-    public GzbUsers gzbUsersFindCache(java.lang.Long gzb_users_id,int mm) {
-        List<GzbUsers> list = gzbUsersQueryCache("select * from "+DataBase.gzbUsersName+" where gzb_users_id=?", Tools.toArray(gzb_users_id),mm);
+    public GzbUsers gzbUsersFindCache(java.lang.Long gzbUsersId,int mm) {
+        List<GzbUsers> list = gzbUsersQueryCache("select * from "+DataBase.gzbUsersName+" where gzb_users_id=?", Tools.toArray(gzbUsersId),mm);
         if (list.size() != 1) {
             return null;
         }
@@ -2511,12 +2511,12 @@ public class BaseDaoImpl implements BaseDao {
     }
 
     @Override
-    public int gzbUsersBatch(List<GzbUsers> list) {
-        return gzbUsersBatch(list, true);
+    public int gzbUsersInsertBatch(List<GzbUsers> list) {
+        return gzbUsersInsertBatch(list, true);
     }
 
     @Override
-    public int gzbUsersBatch(List<GzbUsers> list, boolean autoId) {
+    public int gzbUsersInsertBatch(List<GzbUsers> list, boolean autoId) {
         Connection conn = null;
         ResultSet rs = null;
         PreparedStatement ps = null;
@@ -2838,12 +2838,12 @@ public class BaseDaoImpl implements BaseDao {
     }
 
     @Override
-    public int gzbtestBatch(List<Gzbtest> list) {
-        return gzbtestBatch(list, true);
+    public int gzbtestInsertBatch(List<Gzbtest> list) {
+        return gzbtestInsertBatch(list, true);
     }
 
     @Override
-    public int gzbtestBatch(List<Gzbtest> list, boolean autoId) {
+    public int gzbtestInsertBatch(List<Gzbtest> list, boolean autoId) {
         Connection conn = null;
         ResultSet rs = null;
         PreparedStatement ps = null;
@@ -2979,8 +2979,8 @@ public class BaseDaoImpl implements BaseDao {
         }
         return list.get(0);
     }
-    public Test testFindCache(java.lang.Integer test_id,int mm) {
-        List<Test> list = testQueryCache("select * from "+DataBase.testName+" where test_id=?", Tools.toArray(test_id),mm);
+    public Test testFindCache(java.lang.Integer testId,int mm) {
+        List<Test> list = testQueryCache("select * from "+DataBase.testName+" where test_id=?", Tools.toArray(testId),mm);
         if (list.size() != 1) {
             return null;
         }
@@ -3165,12 +3165,12 @@ public class BaseDaoImpl implements BaseDao {
     }
 
     @Override
-    public int testBatch(List<Test> list) {
-        return testBatch(list, true);
+    public int testInsertBatch(List<Test> list) {
+        return testInsertBatch(list, true);
     }
 
     @Override
-    public int testBatch(List<Test> list, boolean autoId) {
+    public int testInsertBatch(List<Test> list, boolean autoId) {
         Connection conn = null;
         ResultSet rs = null;
         PreparedStatement ps = null;
@@ -3306,8 +3306,8 @@ public class BaseDaoImpl implements BaseDao {
         }
         return list.get(0);
     }
-    public Users usersFindCache(java.lang.Long users_id,int mm) {
-        List<Users> list = usersQueryCache("select * from "+DataBase.usersName+" where users_id=?", Tools.toArray(users_id),mm);
+    public Users usersFindCache(java.lang.Long usersId,int mm) {
+        List<Users> list = usersQueryCache("select * from "+DataBase.usersName+" where users_id=?", Tools.toArray(usersId),mm);
         if (list.size() != 1) {
             return null;
         }
@@ -3498,12 +3498,12 @@ public class BaseDaoImpl implements BaseDao {
     }
 
     @Override
-    public int usersBatch(List<Users> list) {
-        return usersBatch(list, true);
+    public int usersInsertBatch(List<Users> list) {
+        return usersInsertBatch(list, true);
     }
 
     @Override
-    public int usersBatch(List<Users> list, boolean autoId) {
+    public int usersInsertBatch(List<Users> list, boolean autoId) {
         Connection conn = null;
         ResultSet rs = null;
         PreparedStatement ps = null;

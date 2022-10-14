@@ -16,22 +16,24 @@ public class Auto {
         // 2019-10-09
         //pay_system
         //gzb_system
-        generate(null, "gzb_system", "*", true,true);
+        generate(null, "gzb_system", "*", true, true);
+
     }
 
     /**
      * @param projectPath 项目路径 为空默认调用 Tools.getProjectPath()
      * @param dbName      数据库名称 需要和配置文件中对应
      * @param tableName   需要生成哪些表 *表示所有表 否则就 表名/表名/
-     * @param hump  true 命名 驼峰   false 和数据库保持一致
+     * @param hump        true 命名 驼峰   false 和数据库保持一致
      */
-    public static final void generate(String projectPath, String dbName, String tableName, boolean baseDao,boolean hump) {
-        if (hump){
-            generateHump(projectPath,dbName,tableName,baseDao);
-        }else{
-            generateOriginal(projectPath,dbName,tableName,baseDao);
+    public static final void generate(String projectPath, String dbName, String tableName, boolean baseDao, boolean hump) {
+        if (hump) {
+            generateHump(projectPath, dbName, tableName, baseDao);
+        } else {
+            generateOriginal(projectPath, dbName, tableName, baseDao);
         }
     }
+
     /**
      * @param projectPath 项目路径 为空默认调用 Tools.getProjectPath()
      * @param dbName      数据库名称 需要和配置文件中对应
@@ -152,8 +154,8 @@ class AutoHump {
             String 表名大写 = lowStr_d(entity.name);
             String 表名小写 = lowStr_x(entity.name);
             String id = (lowStr_x(entity.id));
-            if (entity.idType.equals("java.lang.Integer")){
-                code2 +="            Cache.gzbCache.set(\"db_"+表名小写+"_"+id+"_auto_incr\", String.valueOf(db.getMaxId_db_private(\""+表名小写+"\", \""+id+"\")));\n";
+            if (entity.idType.equals("java.lang.Integer")) {
+                code2 += "            Cache.gzbCache.set(\"db_" + 表名小写 + "_" + id + "_auto_incr\", String.valueOf(db.getMaxId_db_private(\"" + 表名小写 + "\", \"" + id + "\")));\n";
             }
         }
 
@@ -179,7 +181,7 @@ class AutoHump {
                 "    public static DB db = new DB(\"" + dbName + "\");\n" +
                 "    static {\n" +
                 "        try {\n" +
-                code2+
+                code2 +
                 "            ThreadPool.start(new GzbThread() {\n" +
                 "                @Override\n" +
                 "                public void start() throws Exception {\n" +
@@ -195,7 +197,7 @@ class AutoHump {
                 "                        e.printStackTrace();\n" +
                 "                    }\n" +
                 "                }\n" +
-                "            }); \n" +
+                "            },\"" + dbName + ".division\", false,1); \n" +
                 "        } catch (Exception e) {\n" +
                 "            e.printStackTrace();\n" +
                 "        } \n" +
@@ -262,31 +264,179 @@ class AutoHump {
             String id = lowStr_x(lowStr_x(db_entity.id));
             String idType = lowStr_x(lowStr_x(db_entity.idType));
             code2 += "import gzb.db." + dbName + ".entity." + 表名_驼峰_首字母大写 + ";\n";
-            code1 +=
-                    "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find("+idType+" " + lowStr_hump(id) + ");\n" +
-                            "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(String sql, Object[] arr);\n" +
-                            "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
-                            "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache("+idType+" " + id + ",int mm);\n" +
-                            "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(String sql, Object[] arr,int mm);\n" +
-                            "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ",int mm);\n" +
-                            "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "Query(String sql, Object[] arr);\n" +
-                            "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "Query(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
-                            "    ListPage " + 表名_驼峰_首字母小写 + "Query(String sql, Object[] arr, int page, int limit);\n" +
-                            "    ListPage " + 表名_驼峰_首字母小写 + "Query(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", int page, int limit, int maxPage, int maxLimit);\n" +
-                            "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "QueryCache(String sql, Object[] arr, int mm);\n" +
-                            "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "QueryCache(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", int mm);\n" +
-                            "    ListPage " + 表名_驼峰_首字母小写 + "QueryCache(String sql, Object[] arr, int page, int limit, int mm);\n" +
-                            "    ListPage " + 表名_驼峰_首字母小写 + "QueryCache(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", int page, int limit, int maxPage, int maxLimit, int mm);\n" +
-                            "    int " + 表名_驼峰_首字母小写 + "Delete(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
-                            "    int " + 表名_驼峰_首字母小写 + "Insert(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
-                            "    int " + 表名_驼峰_首字母小写 + "Update(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
-                            "    int " + 表名_驼峰_首字母小写 + "Batch(List<" + 表名_驼峰_首字母大写 + "> list, boolean autoId);\n" +
-                            "    int " + 表名_驼峰_首字母小写 + "Batch(List<" + 表名_驼峰_首字母大写 + "> list);\n" +
-                            "    int " + 表名_驼峰_首字母小写 + "Batch(String sql, List<Object[]> list);\n" +
-                            "    int " + 表名_驼峰_首字母小写 + "InsertAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", boolean auto);\n" +
-                            "    int " + 表名_驼峰_首字母小写 + "InsertAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
-                            "    int " + 表名_驼峰_首字母小写 + "DeleteAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
-                            "    int " + 表名_驼峰_首字母小写 + "UpdateAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n";
+            code1 += "    /**\n" +
+                    "     * 查询单条数据，如果查询结果不是一条那么会返回 null\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + "Id 实体类 主键ID\n" +
+                    "     * @return " + 表名_驼峰_首字母大写 + " 实体类对象\n" +
+                    "     * */\n" +
+                    "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(" + idType + " " + lowStr_hump(id) + ");\n" +
+                    "    /**\n" +
+                    "     * 查询单条数据，如果查询结果不是一条那么会返回 null\n" +
+                    "     * @param sql sql语句\n" +
+                    "     * @param arr 对应sql中的 ?\n" +
+                    "     * @return " + 表名_驼峰_首字母大写 + " 实体类对象\n" +
+                    "     * */\n" +
+                    "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(String sql, Object[] arr);\n" +
+                    "    /**\n" +
+                    "     * 查询单条数据，如果查询结果不是一条那么会返回 null\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成查询语句\n" +
+                    "     * @return " + 表名_驼峰_首字母大写 + " 实体类对象\n" +
+                    "     * */\n" +
+                    "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
+                    "    /**\n" +
+                    "     * 查询单条数据，如果查询结果不是一条那么会返回 null\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + "Id 实体类 主键ID\n" +
+                    "     * @param mm 缓存时间（秒）\n" +
+                    "     * @return " + 表名_驼峰_首字母大写 + " 实体类对象\n" +
+                    "     * */\n" +
+                    "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(" + idType + " " + lowStr_hump(id) + ",int mm);\n" +
+                    "    /**\n" +
+                    "     * 查询单条数据，如果查询结果不是一条那么会返回 null\n" +
+                    "     * @param sql sql语句\n" +
+                    "     * @param arr 对应sql中的 ?\n" +
+                    "     * @param mm 缓存时间（秒）\n" +
+                    "     * @return " + 表名_驼峰_首字母大写 + " 实体类对象\n" +
+                    "     * */\n" +
+                    "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(String sql, Object[] arr,int mm);\n" +
+                    "    /**\n" +
+                    "     * 查询单条数据，如果查询结果不是一条那么会返回 null\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成查询语句\n" +
+                    "     * @param mm 缓存时间（秒）\n" +
+                    "     * @return " + 表名_驼峰_首字母大写 + " 实体类对象\n" +
+                    "     * */\n" +
+                    "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ",int mm);\n" +
+                    "    /**\n" +
+                    "     * 查询数据\n" +
+                    "     * @param sql sql语句\n" +
+                    "     * @param arr 对应sql中的 ?\n" +
+                    "     * @return List<" + 表名_驼峰_首字母大写 + "> 对象\n" +
+                    "     * */\n" +
+                    "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "Query(String sql, Object[] arr);\n" +
+                    "    /**\n" +
+                    "     * 查询数据\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成查询语句\n" +
+                    "     * @return List<" + 表名_驼峰_首字母大写 + "> 对象\n" +
+                    "     * */\n" +
+                    "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "Query(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
+                    "    /**\n" +
+                    "     * 查询数据 返回分页对象\n" +
+                    "     * @param sql sql语句\n" +
+                    "     * @param arr 对应sql中的 ?\n" +
+                    "     * @param page 页码\n" +
+                    "     * @param limit 每页长度\n" +
+                    "     * @return ListPage 对象\n" +
+                    "     * */\n" +
+                    "    ListPage " + 表名_驼峰_首字母小写 + "Query(String sql, Object[] arr, int page, int limit);\n" +
+                    "    /**\n" +
+                    "     * 查询数据 返回分页对象\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成查询语句\n" +
+                    "     * @param page 页码\n" +
+                    "     * @param limit 每页长度\n" +
+                    "     * @param maxPage 最大页码，无法超出\n" +
+                    "     * @param maxLimit 最大每页长度，无法超出\n" +
+                    "     * @return ListPage 对象\n" +
+                    "     * */\n" +
+                    "    ListPage " + 表名_驼峰_首字母小写 + "Query(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", int page, int limit, int maxPage, int maxLimit);\n" +
+                    "    /**\n" +
+                    "     * 查询数据\n" +
+                    "     * @param sql sql语句\n" +
+                    "     * @param arr 对应sql中的 ?\n" +
+                    "     * @param mm 缓存时间（秒）\n" +
+                    "     * @return List<" + 表名_驼峰_首字母大写 + "> 对象\n" +
+                    "     * */\n" +
+                    "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "QueryCache(String sql, Object[] arr, int mm);\n" +
+                    "    /**\n" +
+                    "     * 查询数据\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成查询语句\n" +
+                    "     * @param mm 缓存时间（秒）\n" +
+                    "     * @return List<" + 表名_驼峰_首字母大写 + "> 对象\n" +
+                    "     * */\n" +
+                    "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "QueryCache(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", int mm);\n" +
+                    "    /**\n" +
+                    "     * 查询数据 返回分页对象\n" +
+                    "     * @param sql sql语句\n" +
+                    "     * @param arr 对应sql中的 ?\n" +
+                    "     * @param page 页码\n" +
+                    "     * @param limit 每页长度\n" +
+                    "     * @param mm 缓存时间（秒）\n" +
+                    "     * @return ListPage 对象\n" +
+                    "     * */\n" +
+                    "    ListPage " + 表名_驼峰_首字母小写 + "QueryCache(String sql, Object[] arr, int page, int limit, int mm);\n" +
+                    "    /**\n" +
+                    "     * 查询数据 返回分页对象\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成查询语句\n" +
+                    "     * @param page 页码\n" +
+                    "     * @param limit 每页长度\n" +
+                    "     * @param maxPage 最大页码，无法超出\n" +
+                    "     * @param maxLimit 最大每页长度，无法超出\n" +
+                    "     * @param mm 缓存时间（秒）\n" +
+                    "     * @return ListPage 对象\n" +
+                    "     * */\n" +
+                    "    ListPage " + 表名_驼峰_首字母小写 + "QueryCache(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", int page, int limit, int maxPage, int maxLimit, int mm);\n" +
+                    "    /**\n" +
+                    "     * 删除数据\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Delete语句\n" +
+                    "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                    "     * */\n" +
+                    "    int " + 表名_驼峰_首字母小写 + "Delete(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
+                    "    /**\n" +
+                    "     * 插入数据\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Insert语句\n" +
+                    "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                    "     * */\n" +
+                    "    int " + 表名_驼峰_首字母小写 + "Insert(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
+                    "    /**\n" +
+                    "     * 修改数据\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Update语句 （while条件只能是 主键id）\n" +
+                    "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                    "     * */\n" +
+                    "    int " + 表名_驼峰_首字母小写 + "Update(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
+                    "    /**\n" +
+                    "     * 批量插入数据\n" +
+                    "     * @param list 实体类List 框架会根据该List对象生成Insert语句\n" +
+                    "     * @param autoId 为true时 自动给每个对象生成一个 主键id 否则 不做操作 默认为false\n" +
+                    "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                    "     * */\n" +
+                    "    int " + 表名_驼峰_首字母小写 + "InsertBatch(List<" + 表名_驼峰_首字母大写 + "> list, boolean autoId);\n" +
+                    "    /**\n" +
+                    "     * 批量插入数据\n" +
+                    "     * @param list 实体类List 框架会根据该List对象生成Insert语句 且 自动给每个对象生成一个 主键id （自己给的id会被覆盖掉）\n" +
+                    "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                    "     * */\n" +
+                    "    int " + 表名_驼峰_首字母小写 + "InsertBatch(List<" + 表名_驼峰_首字母大写 + "> list);\n" +
+                    "    /**\n" +
+                    "     * 批量插入数据\n" +
+                    "     * @param sql sql语句\n" +
+                    "     * @param list list的每一条数据都与 sql的?对应\n" +
+                    "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                    "     * */\n" +
+                    "    int " + 表名_驼峰_首字母小写 + "Batch(String sql, List<Object[]> list);\n" +
+                    "    /**\n" +
+                    "     * 异步批量插入数据\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Inser语句\n" +
+                    "     * @param auto 为true时 自动给每个对象生成一个 主键id 否则 不做操作 默认为false\n" +
+                    "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                    "     * */\n" +
+                    "    int " + 表名_驼峰_首字母小写 + "InsertAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", boolean auto);\n" +
+                    "    /**\n" +
+                    "     * 异步批量插入数据\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Inser语句 且 自动给每个对象生成一个 主键id （自己给的id会被覆盖掉）\n" +
+                    "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                    "     * */\n" +
+                    "    int " + 表名_驼峰_首字母小写 + "InsertAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
+                    "    /**\n" +
+                    "     * 异步批量删除数据\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Delete语句\n" +
+                    "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                    "     * */\n" +
+                    "    int " + 表名_驼峰_首字母小写 + "DeleteAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
+                    "    /**\n" +
+                    "     * 异步批量修改数据\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Update语句（while条件只能是 主键id）\n" +
+                    "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                    "     * */\n" +
+                    "    int " + 表名_驼峰_首字母小写 + "UpdateAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n";
+            ;
         }
 
         String code = "package gzb.db." + dbName + ".dao;\n" +
@@ -324,6 +474,7 @@ class AutoHump {
                         "                }\n";
             }
 //////////////////////////////////////////////////////////////
+
             code2 += "import gzb.db." + dbName + ".entity." + 表名_驼峰_首字母大写 + ";\n";
             code3 += "    public final List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "ToList(String json) {\n" +
                     "        List<" + 表名_驼峰_首字母大写 + "> list = new ArrayList<>();\n" +
@@ -338,7 +489,7 @@ class AutoHump {
                     "        return list;\n" +
                     "    }\n";
             code4 += "    @Override\n" +
-                    "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find("+idType+" " + id + ") {\n" +
+                    "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(" + idType + " " + id + ") {\n" +
                     "        List<" + 表名_驼峰_首字母大写 + "> list = " + 表名_驼峰_首字母小写 + "Query(\"select * from \"+DataBase." + 表名_驼峰_首字母小写 + "Name+\" where " + id + "=?\", Tools.toArray(" + id + "));\n" +
                     "        if (list.size() != 1) {\n" +
                     "            return null;\n" +
@@ -373,8 +524,8 @@ class AutoHump {
                     "        }\n" +
                     "        return list.get(0);\n" +
                     "    }\n" +
-                    "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache("+idType+" " + id + ",int mm) {\n" +
-                    "        List<" + 表名_驼峰_首字母大写 + "> list = " + 表名_驼峰_首字母小写 + "QueryCache(\"select * from \"+DataBase." + 表名_驼峰_首字母小写 + "Name+\" where " + id + "=?\", Tools.toArray(" + id + "),mm);\n" +
+                    "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(" + idType + " " + lowStr_hump(id) + ",int mm) {\n" +
+                    "        List<" + 表名_驼峰_首字母大写 + "> list = " + 表名_驼峰_首字母小写 + "QueryCache(\"select * from \"+DataBase." + 表名_驼峰_首字母小写 + "Name+\" where " + id + "=?\", Tools.toArray(" + lowStr_hump(id) + "),mm);\n" +
                     "        if (list.size() != 1) {\n" +
                     "            return null;\n" +
                     "        }\n" +
@@ -505,7 +656,7 @@ class AutoHump {
                     "\n" +
                     "    @Override\n" +
                     "    public int " + 表名_驼峰_首字母小写 + "Insert(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ") {\n" +
-                    "        " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "("+(idType.equals("java.lang.Long")?"DataBase.db.getOnlyIdDistributed()":"DataBase.db.getOnlyIdNumber(\""+db_entity.name+"\",\""+id+"\")")+");\n" +
+                    "        " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "(" + (idType.equals("java.lang.Long") ? "DataBase.db.getOnlyIdDistributed()" : "DataBase.db.getOnlyIdNumber(\"" + db_entity.name + "\",\"" + id + "\")") + ");\n" +
 
 
                     "        AutoSqlEntity ase = " + 表名_驼峰_首字母小写 + ".toInsert();\n" +
@@ -527,7 +678,7 @@ class AutoHump {
                     "    @Override\n" +
                     "    public int " + 表名_驼峰_首字母小写 + "InsertAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", boolean auto) {\n" +
                     "        if (auto) {\n" +
-                    "        " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "("+(idType.equals("java.lang.Long")?"DataBase.db.getOnlyIdDistributed()":"DataBase.db.getOnlyIdNumber(\""+db_entity.name+"\",\""+id+"\")")+");\n" +
+                    "        " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "(" + (idType.equals("java.lang.Long") ? "DataBase.db.getOnlyIdDistributed()" : "DataBase.db.getOnlyIdNumber(\"" + db_entity.name + "\",\"" + id + "\")") + ");\n" +
                     "        }\n" +
                     "        AutoSqlEntity ase = " + 表名_驼峰_首字母小写 + ".toInsert();\n" +
                     "        return DataBase.db.addAsyInfo(ase.sql, ase.objs);\n" +
@@ -546,12 +697,12 @@ class AutoHump {
                     "    }\n" +
                     "\n" +
                     "    @Override\n" +
-                    "    public int " + 表名_驼峰_首字母小写 + "Batch(List<" + 表名_驼峰_首字母大写 + "> list) {\n" +
-                    "        return " + 表名_驼峰_首字母小写 + "Batch(list, true);\n" +
+                    "    public int " + 表名_驼峰_首字母小写 + "InsertBatch(List<" + 表名_驼峰_首字母大写 + "> list) {\n" +
+                    "        return " + 表名_驼峰_首字母小写 + "InsertBatch(list, true);\n" +
                     "    }\n" +
                     "\n" +
                     "    @Override\n" +
-                    "    public int " + 表名_驼峰_首字母小写 + "Batch(List<" + 表名_驼峰_首字母大写 + "> list, boolean autoId) {\n" +
+                    "    public int " + 表名_驼峰_首字母小写 + "InsertBatch(List<" + 表名_驼峰_首字母大写 + "> list, boolean autoId) {\n" +
                     "        Connection conn = null;\n" +
                     "        ResultSet rs = null;\n" +
                     "        PreparedStatement ps = null;\n" +
@@ -560,7 +711,7 @@ class AutoHump {
                     "            long t1 = new Date().getTime();\n" +
                     "            for (int i = 0; i < list.size(); i++) {\n" +
                     "                if (autoId) {\n" +
-                    "                    list.get(i).set" + lowStr_hump(id, true) + "("+(idType.equals("java.lang.Long")?"DataBase.db.getOnlyIdDistributed()":"DataBase.db.getOnlyIdNumber(\""+db_entity.name+"\",\""+id+"\")")+");\n" +
+                    "                    list.get(i).set" + lowStr_hump(id, true) + "(" + (idType.equals("java.lang.Long") ? "DataBase.db.getOnlyIdDistributed()" : "DataBase.db.getOnlyIdNumber(\"" + db_entity.name + "\",\"" + id + "\")") + ");\n" +
                     "                }\n" +
                     "                AutoSqlEntity ase = list.get(i).toInsert();\n" +
                     "                if (i == 0) {\n" +
@@ -691,29 +842,177 @@ class AutoHump {
                 "import gzb.tools.ListPage;\n" +
                 "import java.util.List;\n" +
                 "public interface " + 表名_驼峰_首字母大写 + "Dao {\n" +
-                "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find("+idType+" " + lowStr_hump(id) + ");\n" +
+                "    /**\n" +
+                "     * 查询单条数据，如果查询结果不是一条那么会返回 null\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + "Id 实体类 主键ID\n" +
+                "     * @return " + 表名_驼峰_首字母大写 + " 实体类对象\n" +
+                "     * */\n" +
+                "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(" + idType + " " + lowStr_hump(id) + ");\n" +
+                "    /**\n" +
+                "     * 查询单条数据，如果查询结果不是一条那么会返回 null\n" +
+                "     * @param sql sql语句\n" +
+                "     * @param arr 对应sql中的 ?\n" +
+                "     * @return " + 表名_驼峰_首字母大写 + " 实体类对象\n" +
+                "     * */\n" +
                 "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(String sql, Object[] arr);\n" +
+                "    /**\n" +
+                "     * 查询单条数据，如果查询结果不是一条那么会返回 null\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成查询语句\n" +
+                "     * @return " + 表名_驼峰_首字母大写 + " 实体类对象\n" +
+                "     * */\n" +
                 "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
-                "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache("+idType+" " + id + ",int mm);\n" +
+                "    /**\n" +
+                "     * 查询单条数据，如果查询结果不是一条那么会返回 null\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + "Id 实体类 主键ID\n" +
+                "     * @param mm 缓存时间（秒）\n" +
+                "     * @return " + 表名_驼峰_首字母大写 + " 实体类对象\n" +
+                "     * */\n" +
+                "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(" + idType + " " + lowStr_hump(id) + ",int mm);\n" +
+                "    /**\n" +
+                "     * 查询单条数据，如果查询结果不是一条那么会返回 null\n" +
+                "     * @param sql sql语句\n" +
+                "     * @param arr 对应sql中的 ?\n" +
+                "     * @param mm 缓存时间（秒）\n" +
+                "     * @return " + 表名_驼峰_首字母大写 + " 实体类对象\n" +
+                "     * */\n" +
                 "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(String sql, Object[] arr,int mm);\n" +
+                "    /**\n" +
+                "     * 查询单条数据，如果查询结果不是一条那么会返回 null\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成查询语句\n" +
+                "     * @param mm 缓存时间（秒）\n" +
+                "     * @return " + 表名_驼峰_首字母大写 + " 实体类对象\n" +
+                "     * */\n" +
                 "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ",int mm);\n" +
+                "    /**\n" +
+                "     * 查询数据\n" +
+                "     * @param sql sql语句\n" +
+                "     * @param arr 对应sql中的 ?\n" +
+                "     * @return List<" + 表名_驼峰_首字母大写 + "> 对象\n" +
+                "     * */\n" +
                 "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "Query(String sql, Object[] arr);\n" +
+                "    /**\n" +
+                "     * 查询数据\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成查询语句\n" +
+                "     * @return List<" + 表名_驼峰_首字母大写 + "> 对象\n" +
+                "     * */\n" +
                 "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "Query(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
+                "    /**\n" +
+                "     * 查询数据 返回分页对象\n" +
+                "     * @param sql sql语句\n" +
+                "     * @param arr 对应sql中的 ?\n" +
+                "     * @param page 页码\n" +
+                "     * @param limit 每页长度\n" +
+                "     * @return ListPage 对象\n" +
+                "     * */\n" +
                 "    ListPage " + 表名_驼峰_首字母小写 + "Query(String sql, Object[] arr, int page, int limit);\n" +
+                "    /**\n" +
+                "     * 查询数据 返回分页对象\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成查询语句\n" +
+                "     * @param page 页码\n" +
+                "     * @param limit 每页长度\n" +
+                "     * @param maxPage 最大页码，无法超出\n" +
+                "     * @param maxLimit 最大每页长度，无法超出\n" +
+                "     * @return ListPage 对象\n" +
+                "     * */\n" +
                 "    ListPage " + 表名_驼峰_首字母小写 + "Query(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", int page, int limit, int maxPage, int maxLimit);\n" +
+                "    /**\n" +
+                "     * 查询数据\n" +
+                "     * @param sql sql语句\n" +
+                "     * @param arr 对应sql中的 ?\n" +
+                "     * @param mm 缓存时间（秒）\n" +
+                "     * @return List<" + 表名_驼峰_首字母大写 + "> 对象\n" +
+                "     * */\n" +
                 "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "QueryCache(String sql, Object[] arr, int mm);\n" +
+                "    /**\n" +
+                "     * 查询数据\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成查询语句\n" +
+                "     * @param mm 缓存时间（秒）\n" +
+                "     * @return List<" + 表名_驼峰_首字母大写 + "> 对象\n" +
+                "     * */\n" +
                 "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "QueryCache(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", int mm);\n" +
+                "    /**\n" +
+                "     * 查询数据 返回分页对象\n" +
+                "     * @param sql sql语句\n" +
+                "     * @param arr 对应sql中的 ?\n" +
+                "     * @param page 页码\n" +
+                "     * @param limit 每页长度\n" +
+                "     * @param mm 缓存时间（秒）\n" +
+                "     * @return ListPage 对象\n" +
+                "     * */\n" +
                 "    ListPage " + 表名_驼峰_首字母小写 + "QueryCache(String sql, Object[] arr, int page, int limit, int mm);\n" +
+                "    /**\n" +
+                "     * 查询数据 返回分页对象\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成查询语句\n" +
+                "     * @param page 页码\n" +
+                "     * @param limit 每页长度\n" +
+                "     * @param maxPage 最大页码，无法超出\n" +
+                "     * @param maxLimit 最大每页长度，无法超出\n" +
+                "     * @param mm 缓存时间（秒）\n" +
+                "     * @return ListPage 对象\n" +
+                "     * */\n" +
                 "    ListPage " + 表名_驼峰_首字母小写 + "QueryCache(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", int page, int limit, int maxPage, int maxLimit, int mm);\n" +
+                "    /**\n" +
+                "     * 删除数据\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Delete语句\n" +
+                "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                "     * */\n" +
                 "    int " + 表名_驼峰_首字母小写 + "Delete(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
+                "    /**\n" +
+                "     * 插入数据\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Insert语句\n" +
+                "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                "     * */\n" +
                 "    int " + 表名_驼峰_首字母小写 + "Insert(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
+                "    /**\n" +
+                "     * 修改数据\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Update语句 （while条件只能是 主键id）\n" +
+                "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                "     * */\n" +
                 "    int " + 表名_驼峰_首字母小写 + "Update(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
-                "    int " + 表名_驼峰_首字母小写 + "Batch(List<" + 表名_驼峰_首字母大写 + "> list, boolean autoId);\n" +
-                "    int " + 表名_驼峰_首字母小写 + "Batch(List<" + 表名_驼峰_首字母大写 + "> list);\n" +
+                "    /**\n" +
+                "     * 批量插入数据\n" +
+                "     * @param list 实体类List 框架会根据该List对象生成Insert语句\n" +
+                "     * @param autoId 为true时 自动给每个对象生成一个 主键id 否则 不做操作 默认为false\n" +
+                "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                "     * */\n" +
+                "    int " + 表名_驼峰_首字母小写 + "InsertBatch(List<" + 表名_驼峰_首字母大写 + "> list, boolean autoId);\n" +
+                "    /**\n" +
+                "     * 批量插入数据\n" +
+                "     * @param list 实体类List 框架会根据该List对象生成Insert语句 且 自动给每个对象生成一个 主键id （自己给的id会被覆盖掉）\n" +
+                "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                "     * */\n" +
+                "    int " + 表名_驼峰_首字母小写 + "InsertBatch(List<" + 表名_驼峰_首字母大写 + "> list);\n" +
+                "    /**\n" +
+                "     * 批量插入数据\n" +
+                "     * @param sql sql语句\n" +
+                "     * @param list list的每一条数据都与 sql的?对应\n" +
+                "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                "     * */\n" +
                 "    int " + 表名_驼峰_首字母小写 + "Batch(String sql, List<Object[]> list);\n" +
+                "    /**\n" +
+                "     * 异步批量插入数据\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Inser语句\n" +
+                "     * @param auto 为true时 自动给每个对象生成一个 主键id 否则 不做操作 默认为false\n" +
+                "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                "     * */\n" +
                 "    int " + 表名_驼峰_首字母小写 + "InsertAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", boolean auto);\n" +
+                "    /**\n" +
+                "     * 异步批量插入数据\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Inser语句 且 自动给每个对象生成一个 主键id （自己给的id会被覆盖掉）\n" +
+                "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                "     * */\n" +
                 "    int " + 表名_驼峰_首字母小写 + "InsertAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
+                "    /**\n" +
+                "     * 异步批量删除数据\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Delete语句\n" +
+                "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                "     * */\n" +
                 "    int " + 表名_驼峰_首字母小写 + "DeleteAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
+                "    /**\n" +
+                "     * 异步批量修改数据\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Update语句（while条件只能是 主键id）\n" +
+                "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                "     * */\n" +
                 "    int " + 表名_驼峰_首字母小写 + "UpdateAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
                 "}";
 
@@ -765,7 +1064,7 @@ class AutoHump {
                 "        return list;\n" +
                 "    }\n" +
                 "    @Override\n" +
-                "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find("+idType+" " + id + ") {\n" +
+                "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(" + idType + " " + id + ") {\n" +
                 "        List<" + 表名_驼峰_首字母大写 + "> list = " + 表名_驼峰_首字母小写 + "Query(\"select * from \"+DataBase." + 表名_驼峰_首字母小写 + "Name+\" where " + id + "=?\", Tools.toArray(" + id + "));\n" +
                 "        if (list.size() != 1) {\n" +
                 "            return null;\n" +
@@ -800,8 +1099,8 @@ class AutoHump {
                 "        }\n" +
                 "        return list.get(0);\n" +
                 "    }\n" +
-                "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache("+idType+" " + id + ",int mm) {\n" +
-                "        List<" + 表名_驼峰_首字母大写 + "> list = " + 表名_驼峰_首字母小写 + "QueryCache(\"select * from \"+DataBase." + 表名_驼峰_首字母小写 + "Name+\" where " + id + "=?\", Tools.toArray(" + id + "),mm);\n" +
+                "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(" + idType + " " + lowStr_hump(id) + ",int mm) {\n" +
+                "        List<" + 表名_驼峰_首字母大写 + "> list = " + 表名_驼峰_首字母小写 + "QueryCache(\"select * from \"+DataBase." + 表名_驼峰_首字母小写 + "Name+\" where " + id + "=?\", Tools.toArray(" + lowStr_hump(id) + "),mm);\n" +
                 "        if (list.size() != 1) {\n" +
                 "            return null;\n" +
                 "        }\n" +
@@ -932,7 +1231,7 @@ class AutoHump {
                 "\n" +
                 "    @Override\n" +
                 "    public int " + 表名_驼峰_首字母小写 + "Insert(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ") {\n" +
-                "        " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "("+(idType.equals("java.lang.Long")?"DataBase.db.getOnlyIdDistributed()":"DataBase.db.getOnlyIdNumber(\""+entity.name+"\",\""+id+"\")")+");\n" +
+                "        " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "(" + (idType.equals("java.lang.Long") ? "DataBase.db.getOnlyIdDistributed()" : "DataBase.db.getOnlyIdNumber(\"" + entity.name + "\",\"" + id + "\")") + ");\n" +
                 "        AutoSqlEntity ase = " + 表名_驼峰_首字母小写 + ".toInsert();\n" +
                 "        return DataBase.db.runSqlUpdateOrSaveOrDelete(ase.sql, ase.objs);\n" +
                 "    }\n" +
@@ -952,7 +1251,7 @@ class AutoHump {
                 "    @Override\n" +
                 "    public int " + 表名_驼峰_首字母小写 + "InsertAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", boolean auto) {\n" +
                 "        if (auto) {\n" +
-                "            " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "("+(idType.equals("java.lang.Long")?"DataBase.db.getOnlyIdDistributed()":"DataBase.db.getOnlyIdNumber(\""+entity.name+"\",\""+id+"\")")+");\n" +
+                "            " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "(" + (idType.equals("java.lang.Long") ? "DataBase.db.getOnlyIdDistributed()" : "DataBase.db.getOnlyIdNumber(\"" + entity.name + "\",\"" + id + "\")") + ");\n" +
                 "        }\n" +
                 "        AutoSqlEntity ase = " + 表名_驼峰_首字母小写 + ".toInsert();\n" +
                 "        return DataBase.db.addAsyInfo(ase.sql, ase.objs);\n" +
@@ -971,12 +1270,12 @@ class AutoHump {
                 "    }\n" +
                 "\n" +
                 "    @Override\n" +
-                "    public int " + 表名_驼峰_首字母小写 + "Batch(List<" + 表名_驼峰_首字母大写 + "> list) {\n" +
-                "        return " + 表名_驼峰_首字母小写 + "Batch(list, true);\n" +
+                "    public int " + 表名_驼峰_首字母小写 + "InsertBatch(List<" + 表名_驼峰_首字母大写 + "> list) {\n" +
+                "        return " + 表名_驼峰_首字母小写 + "InsertBatch(list, true);\n" +
                 "    }\n" +
                 "\n" +
                 "    @Override\n" +
-                "    public int " + 表名_驼峰_首字母小写 + "Batch(List<" + 表名_驼峰_首字母大写 + "> list, boolean autoId) {\n" +
+                "    public int " + 表名_驼峰_首字母小写 + "InsertBatch(List<" + 表名_驼峰_首字母大写 + "> list, boolean autoId) {\n" +
                 "        Connection conn = null;\n" +
                 "        ResultSet rs = null;\n" +
                 "        PreparedStatement ps = null;\n" +
@@ -985,7 +1284,7 @@ class AutoHump {
                 "            long t1 = new Date().getTime();\n" +
                 "            for (int i = 0; i < list.size(); i++) {\n" +
                 "                if (autoId) {\n" +
-                "                    list.get(i).set" + lowStr_hump(id, true) + "("+(idType.equals("java.lang.Long")?"DataBase.db.getOnlyIdDistributed()":"DataBase.db.getOnlyIdNumber(\""+entity.name+"\",\""+id+"\")")+");\n" +
+                "                    list.get(i).set" + lowStr_hump(id, true) + "(" + (idType.equals("java.lang.Long") ? "DataBase.db.getOnlyIdDistributed()" : "DataBase.db.getOnlyIdNumber(\"" + entity.name + "\",\"" + id + "\")") + ");\n" +
                 "                }\n" +
                 "                AutoSqlEntity ase = list.get(i).toInsert();\n" +
                 "                if (i == 0) {\n" +
@@ -1138,13 +1437,13 @@ class AutoHump {
                     "    }\n";
             code0 += "    private " + entity.subType.get(i) + " " + 列名_驼峰_小写 + ";\n";
             if (i == entity.subName.size() - 1) {
-                code10+="                .append(this."+列名_驼峰_小写+"==null?\"\":this."+列名_驼峰_小写+")\n" +
+                code10 += "                .append(this." + 列名_驼峰_小写 + "==null?\"\":this." + 列名_驼峰_小写 + ")\n" +
                         "                .append(\"')\").toString();\n";
                 code6 += 列名_小写 + "";
                 code7 += "?";
                 code2 += "        if (" + 列名_驼峰_小写 + " != null){sb.append(\"\\\"" + 列名_驼峰_小写 + "\\\":\\\"\").append(" + 列名_驼峰_小写 + ").append(\"\\\"\");}\n";
             } else {
-                code10+="                .append(this."+列名_驼峰_小写+"==null?\"\":this."+列名_驼峰_小写+")\n" +
+                code10 += "                .append(this." + 列名_驼峰_小写 + "==null?\"\":this." + 列名_驼峰_小写 + ")\n" +
                         "                .append(\"','\")\n";
                 code6 += 列名_小写 + ",";
                 code7 += "?,";
@@ -1297,7 +1596,7 @@ class AutoHump {
         String code7 = "";
         String code8 = "";
         String code9 = "";
-        String code10="";
+        String code10 = "";
         for (int i = 0; i < entity.subName.size(); i++) {
             String 列名_小写 = lowStr_x(entity.subName.get(i));
             String 列名_驼峰_小写 = lowStr_hump(列名_小写);
@@ -1333,7 +1632,7 @@ class AutoHump {
                 code7 += "?";
                 code2 += "        if (" + 列名_驼峰_小写 + " != null){sb.append(\"\\\"" + 列名_驼峰_小写 + "\\\":\\\"\").append(" + 列名_驼峰_小写 + ").append(\"\\\"\");}\n";
 
-                code10+="                .append(this."+列名_驼峰_小写+"==null?\"\":this."+列名_驼峰_小写+")\n" +
+                code10 += "                .append(this." + 列名_驼峰_小写 + "==null?\"\":this." + 列名_驼峰_小写 + ")\n" +
                         "                .append(\"')\").toString();\n";
             } else {
                 code6 += 列名_小写 + ",";
@@ -1341,7 +1640,7 @@ class AutoHump {
                 code2 += "        if (" + 列名_驼峰_小写 + " != null){sb.append(\"\\\"" + 列名_驼峰_小写 + "\\\":\\\"\").append(" + 列名_驼峰_小写 + ").append(\"\\\",\");}\n";
 
 
-                code10+="                .append(this."+列名_驼峰_小写+"==null?\"\":this."+列名_驼峰_小写+")\n" +
+                code10 += "                .append(this." + 列名_驼峰_小写 + "==null?\"\":this." + 列名_驼峰_小写 + ")\n" +
                         "                .append(\"','\")\n";
             }
         }
@@ -1646,8 +1945,8 @@ class AutoOriginal {
             String 表名大写 = lowStr_d(entity.name);
             String 表名小写 = lowStr_x(entity.name);
             String id = (lowStr_x(entity.id));
-            if (entity.idType.equals("java.lang.Integer")){
-                code2 +="            Cache.gzbCache.set(\"db_"+表名小写+"_"+id+"_auto_incr\", String.valueOf(db.getMaxId_db_private(\""+表名小写+"\", \""+id+"\")));\n";
+            if (entity.idType.equals("java.lang.Integer")) {
+                code2 += "            Cache.gzbCache.set(\"db_" + 表名小写 + "_" + id + "_auto_incr\", String.valueOf(db.getMaxId_db_private(\"" + 表名小写 + "\", \"" + id + "\")));\n";
             }
         }
 
@@ -1671,7 +1970,7 @@ class AutoOriginal {
 
                 "    static {\n" +
                 "        try {\n" +
-                code2+
+                code2 +
                 "            ThreadPool.start(new GzbThread() {\n" +
                 "                @Override\n" +
                 "                public void start() throws Exception {\n" +
@@ -1687,7 +1986,7 @@ class AutoOriginal {
                 "                        e.printStackTrace();\n" +
                 "                    }\n" +
                 "                }\n" +
-                "            }); \n" +
+                "            },\"" + dbName + ".division\", false,1); \n" +
                 "        } catch (Exception e) {\n" +
                 "            e.printStackTrace();\n" +
                 "        } \n" +
@@ -1754,31 +2053,178 @@ class AutoOriginal {
             String id = lowStr_x(lowStr_x(db_entity.id));
             String idType = lowStr_x(lowStr_x(db_entity.idType));
             code2 += "import gzb.db." + dbName + ".entity." + 表名_驼峰_首字母大写 + ";\n";
-            code1 +=
-                    "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find("+idType+" " + lowStr_hump(id) + ");\n" +
-                            "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(String sql, Object[] arr);\n" +
-                            "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
-                            "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache("+idType+" " + id + ",int mm);\n" +
-                            "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(String sql, Object[] arr,int mm);\n" +
-                            "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ",int mm);\n" +
-                            "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "Query(String sql, Object[] arr);\n" +
-                            "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "Query(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
-                            "    ListPage " + 表名_驼峰_首字母小写 + "Query(String sql, Object[] arr, int page, int limit);\n" +
-                            "    ListPage " + 表名_驼峰_首字母小写 + "Query(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", int page, int limit, int maxPage, int maxLimit);\n" +
-                            "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "QueryCache(String sql, Object[] arr, int mm);\n" +
-                            "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "QueryCache(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", int mm);\n" +
-                            "    ListPage " + 表名_驼峰_首字母小写 + "QueryCache(String sql, Object[] arr, int page, int limit, int mm);\n" +
-                            "    ListPage " + 表名_驼峰_首字母小写 + "QueryCache(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", int page, int limit, int maxPage, int maxLimit, int mm);\n" +
-                            "    int " + 表名_驼峰_首字母小写 + "Delete(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
-                            "    int " + 表名_驼峰_首字母小写 + "Insert(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
-                            "    int " + 表名_驼峰_首字母小写 + "Update(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
-                            "    int " + 表名_驼峰_首字母小写 + "Batch(List<" + 表名_驼峰_首字母大写 + "> list, boolean autoId);\n" +
-                            "    int " + 表名_驼峰_首字母小写 + "Batch(List<" + 表名_驼峰_首字母大写 + "> list);\n" +
-                            "    int " + 表名_驼峰_首字母小写 + "Batch(String sql, List<Object[]> list);\n" +
-                            "    int " + 表名_驼峰_首字母小写 + "InsertAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", boolean auto);\n" +
-                            "    int " + 表名_驼峰_首字母小写 + "InsertAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
-                            "    int " + 表名_驼峰_首字母小写 + "DeleteAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
-                            "    int " + 表名_驼峰_首字母小写 + "UpdateAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n";
+            code1 += "    /**\n" +
+                    "     * 查询单条数据，如果查询结果不是一条那么会返回 null\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + "Id 实体类 主键ID\n" +
+                    "     * @return " + 表名_驼峰_首字母大写 + " 实体类对象\n" +
+                    "     * */\n" +
+                    "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(" + idType + " " + lowStr_hump(id) + ");\n" +
+                    "    /**\n" +
+                    "     * 查询单条数据，如果查询结果不是一条那么会返回 null\n" +
+                    "     * @param sql sql语句\n" +
+                    "     * @param arr 对应sql中的 ?\n" +
+                    "     * @return " + 表名_驼峰_首字母大写 + " 实体类对象\n" +
+                    "     * */\n" +
+                    "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(String sql, Object[] arr);\n" +
+                    "    /**\n" +
+                    "     * 查询单条数据，如果查询结果不是一条那么会返回 null\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成查询语句\n" +
+                    "     * @return " + 表名_驼峰_首字母大写 + " 实体类对象\n" +
+                    "     * */\n" +
+                    "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
+                    "    /**\n" +
+                    "     * 查询单条数据，如果查询结果不是一条那么会返回 null\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + "Id 实体类 主键ID\n" +
+                    "     * @param mm 缓存时间（秒）\n" +
+                    "     * @return " + 表名_驼峰_首字母大写 + " 实体类对象\n" +
+                    "     * */\n" +
+                    "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(" + idType + " " + lowStr_hump(id) + ",int mm);\n" +
+                    "    /**\n" +
+                    "     * 查询单条数据，如果查询结果不是一条那么会返回 null\n" +
+                    "     * @param sql sql语句\n" +
+                    "     * @param arr 对应sql中的 ?\n" +
+                    "     * @param mm 缓存时间（秒）\n" +
+                    "     * @return " + 表名_驼峰_首字母大写 + " 实体类对象\n" +
+                    "     * */\n" +
+                    "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(String sql, Object[] arr,int mm);\n" +
+                    "    /**\n" +
+                    "     * 查询单条数据，如果查询结果不是一条那么会返回 null\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成查询语句\n" +
+                    "     * @param mm 缓存时间（秒）\n" +
+                    "     * @return " + 表名_驼峰_首字母大写 + " 实体类对象\n" +
+                    "     * */\n" +
+                    "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ",int mm);\n" +
+                    "    /**\n" +
+                    "     * 查询数据\n" +
+                    "     * @param sql sql语句\n" +
+                    "     * @param arr 对应sql中的 ?\n" +
+                    "     * @return List<" + 表名_驼峰_首字母大写 + "> 对象\n" +
+                    "     * */\n" +
+                    "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "Query(String sql, Object[] arr);\n" +
+                    "    /**\n" +
+                    "     * 查询数据\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成查询语句\n" +
+                    "     * @return List<" + 表名_驼峰_首字母大写 + "> 对象\n" +
+                    "     * */\n" +
+                    "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "Query(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
+                    "    /**\n" +
+                    "     * 查询数据 返回分页对象\n" +
+                    "     * @param sql sql语句\n" +
+                    "     * @param arr 对应sql中的 ?\n" +
+                    "     * @param page 页码\n" +
+                    "     * @param limit 每页长度\n" +
+                    "     * @return ListPage 对象\n" +
+                    "     * */\n" +
+                    "    ListPage " + 表名_驼峰_首字母小写 + "Query(String sql, Object[] arr, int page, int limit);\n" +
+                    "    /**\n" +
+                    "     * 查询数据 返回分页对象\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成查询语句\n" +
+                    "     * @param page 页码\n" +
+                    "     * @param limit 每页长度\n" +
+                    "     * @param maxPage 最大页码，无法超出\n" +
+                    "     * @param maxLimit 最大每页长度，无法超出\n" +
+                    "     * @return ListPage 对象\n" +
+                    "     * */\n" +
+                    "    ListPage " + 表名_驼峰_首字母小写 + "Query(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", int page, int limit, int maxPage, int maxLimit);\n" +
+                    "    /**\n" +
+                    "     * 查询数据\n" +
+                    "     * @param sql sql语句\n" +
+                    "     * @param arr 对应sql中的 ?\n" +
+                    "     * @param mm 缓存时间（秒）\n" +
+                    "     * @return List<" + 表名_驼峰_首字母大写 + "> 对象\n" +
+                    "     * */\n" +
+                    "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "QueryCache(String sql, Object[] arr, int mm);\n" +
+                    "    /**\n" +
+                    "     * 查询数据\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成查询语句\n" +
+                    "     * @param mm 缓存时间（秒）\n" +
+                    "     * @return List<" + 表名_驼峰_首字母大写 + "> 对象\n" +
+                    "     * */\n" +
+                    "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "QueryCache(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", int mm);\n" +
+                    "    /**\n" +
+                    "     * 查询数据 返回分页对象\n" +
+                    "     * @param sql sql语句\n" +
+                    "     * @param arr 对应sql中的 ?\n" +
+                    "     * @param page 页码\n" +
+                    "     * @param limit 每页长度\n" +
+                    "     * @param mm 缓存时间（秒）\n" +
+                    "     * @return ListPage 对象\n" +
+                    "     * */\n" +
+                    "    ListPage " + 表名_驼峰_首字母小写 + "QueryCache(String sql, Object[] arr, int page, int limit, int mm);\n" +
+                    "    /**\n" +
+                    "     * 查询数据 返回分页对象\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成查询语句\n" +
+                    "     * @param page 页码\n" +
+                    "     * @param limit 每页长度\n" +
+                    "     * @param maxPage 最大页码，无法超出\n" +
+                    "     * @param maxLimit 最大每页长度，无法超出\n" +
+                    "     * @param mm 缓存时间（秒）\n" +
+                    "     * @return ListPage 对象\n" +
+                    "     * */\n" +
+                    "    ListPage " + 表名_驼峰_首字母小写 + "QueryCache(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", int page, int limit, int maxPage, int maxLimit, int mm);\n" +
+                    "    /**\n" +
+                    "     * 删除数据\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Delete语句\n" +
+                    "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                    "     * */\n" +
+                    "    int " + 表名_驼峰_首字母小写 + "Delete(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
+                    "    /**\n" +
+                    "     * 插入数据\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Insert语句\n" +
+                    "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                    "     * */\n" +
+                    "    int " + 表名_驼峰_首字母小写 + "Insert(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
+                    "    /**\n" +
+                    "     * 修改数据\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Update语句 （while条件只能是 主键id）\n" +
+                    "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                    "     * */\n" +
+                    "    int " + 表名_驼峰_首字母小写 + "Update(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
+                    "    /**\n" +
+                    "     * 批量插入数据\n" +
+                    "     * @param list 实体类List 框架会根据该List对象生成Insert语句\n" +
+                    "     * @param autoId 为true时 自动给每个对象生成一个 主键id 否则 不做操作 默认为false\n" +
+                    "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                    "     * */\n" +
+                    "    int " + 表名_驼峰_首字母小写 + "InsertBatch(List<" + 表名_驼峰_首字母大写 + "> list, boolean autoId);\n" +
+                    "    /**\n" +
+                    "     * 批量插入数据\n" +
+                    "     * @param list 实体类List 框架会根据该List对象生成Insert语句 且 自动给每个对象生成一个 主键id （自己给的id会被覆盖掉）\n" +
+                    "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                    "     * */\n" +
+                    "    int " + 表名_驼峰_首字母小写 + "InsertBatch(List<" + 表名_驼峰_首字母大写 + "> list);\n" +
+                    "    /**\n" +
+                    "     * 批量插入数据\n" +
+                    "     * @param sql sql语句\n" +
+                    "     * @param list list的每一条数据都与 sql的?对应\n" +
+                    "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                    "     * */\n" +
+                    "    int " + 表名_驼峰_首字母小写 + "Batch(String sql, List<Object[]> list);\n" +
+                    "    /**\n" +
+                    "     * 异步批量插入数据\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Inser语句\n" +
+                    "     * @param auto 为true时 自动给每个对象生成一个 主键id 否则 不做操作 默认为false\n" +
+                    "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                    "     * */\n" +
+                    "    int " + 表名_驼峰_首字母小写 + "InsertAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", boolean auto);\n" +
+                    "    /**\n" +
+                    "     * 异步批量插入数据\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Inser语句 且 自动给每个对象生成一个 主键id （自己给的id会被覆盖掉）\n" +
+                    "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                    "     * */\n" +
+                    "    int " + 表名_驼峰_首字母小写 + "InsertAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
+                    "    /**\n" +
+                    "     * 异步批量删除数据\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Delete语句\n" +
+                    "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                    "     * */\n" +
+                    "    int " + 表名_驼峰_首字母小写 + "DeleteAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
+                    "    /**\n" +
+                    "     * 异步批量修改数据\n" +
+                    "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Update语句（while条件只能是 主键id）\n" +
+                    "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                    "     * */\n" +
+                    "    int " + 表名_驼峰_首字母小写 + "UpdateAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n";
         }
 
         String code = "package gzb.db." + dbName + ".dao;\n" +
@@ -1830,7 +2276,7 @@ class AutoOriginal {
                     "        return list;\n" +
                     "    }\n";
             code4 += "    @Override\n" +
-                    "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find("+idType+" " + id + ") {\n" +
+                    "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(" + idType + " " + id + ") {\n" +
                     "        List<" + 表名_驼峰_首字母大写 + "> list = " + 表名_驼峰_首字母小写 + "Query(\"select * from \"+DataBase." + 表名_驼峰_首字母小写 + "Name+\" where " + id + "=?\", Tools.toArray(" + id + "));\n" +
                     "        if (list.size() != 1) {\n" +
                     "            return null;\n" +
@@ -1865,8 +2311,8 @@ class AutoOriginal {
                     "        }\n" +
                     "        return list.get(0);\n" +
                     "    }\n" +
-                    "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache("+idType+" " + id + ",int mm) {\n" +
-                    "        List<" + 表名_驼峰_首字母大写 + "> list = " + 表名_驼峰_首字母小写 + "QueryCache(\"select * from \"+DataBase." + 表名_驼峰_首字母小写 + "Name+\" where " + id + "=?\", Tools.toArray(" + id + "),mm);\n" +
+                    "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(" + idType + " " + lowStr_hump(id) + ",int mm) {\n" +
+                    "        List<" + 表名_驼峰_首字母大写 + "> list = " + 表名_驼峰_首字母小写 + "QueryCache(\"select * from \"+DataBase." + 表名_驼峰_首字母小写 + "Name+\" where " + id + "=?\", Tools.toArray(" + lowStr_hump(id) + "),mm);\n" +
                     "        if (list.size() != 1) {\n" +
                     "            return null;\n" +
                     "        }\n" +
@@ -1997,7 +2443,7 @@ class AutoOriginal {
                     "\n" +
                     "    @Override\n" +
                     "    public int " + 表名_驼峰_首字母小写 + "Insert(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ") {\n" +
-                    "        " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "("+(idType.equals("java.lang.Long")?"DataBase.db.getOnlyIdDistributed()":"DataBase.db.getOnlyIdNumber(\""+db_entity.name+"\",\""+id+"\")")+");\n" +
+                    "        " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "(" + (idType.equals("java.lang.Long") ? "DataBase.db.getOnlyIdDistributed()" : "DataBase.db.getOnlyIdNumber(\"" + db_entity.name + "\",\"" + id + "\")") + ");\n" +
                     "        AutoSqlEntity ase = " + 表名_驼峰_首字母小写 + ".toInsert();\n" +
                     "        return DataBase.db.runSqlUpdateOrSaveOrDelete(ase.sql, ase.objs);\n" +
                     "    }\n" +
@@ -2017,7 +2463,7 @@ class AutoOriginal {
                     "    @Override\n" +
                     "    public int " + 表名_驼峰_首字母小写 + "InsertAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", boolean auto) {\n" +
                     "        if (auto) {\n" +
-                    "            " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "("+(idType.equals("java.lang.Long")?"DataBase.db.getOnlyIdDistributed()":"DataBase.db.getOnlyIdNumber(\""+db_entity.name+"\",\""+id+"\")")+");\n" +
+                    "            " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "(" + (idType.equals("java.lang.Long") ? "DataBase.db.getOnlyIdDistributed()" : "DataBase.db.getOnlyIdNumber(\"" + db_entity.name + "\",\"" + id + "\")") + ");\n" +
                     "        }\n" +
                     "        AutoSqlEntity ase = " + 表名_驼峰_首字母小写 + ".toInsert();\n" +
                     "        return DataBase.db.addAsyInfo(ase.sql, ase.objs);\n" +
@@ -2036,12 +2482,12 @@ class AutoOriginal {
                     "    }\n" +
                     "\n" +
                     "    @Override\n" +
-                    "    public int " + 表名_驼峰_首字母小写 + "Batch(List<" + 表名_驼峰_首字母大写 + "> list) {\n" +
-                    "        return " + 表名_驼峰_首字母小写 + "Batch(list, true);\n" +
+                    "    public int " + 表名_驼峰_首字母小写 + "InsertBatch(List<" + 表名_驼峰_首字母大写 + "> list) {\n" +
+                    "        return " + 表名_驼峰_首字母小写 + "InsertBatch(list, true);\n" +
                     "    }\n" +
                     "\n" +
                     "    @Override\n" +
-                    "    public int " + 表名_驼峰_首字母小写 + "Batch(List<" + 表名_驼峰_首字母大写 + "> list, boolean autoId) {\n" +
+                    "    public int " + 表名_驼峰_首字母小写 + "InsertBatch(List<" + 表名_驼峰_首字母大写 + "> list, boolean autoId) {\n" +
                     "        Connection conn = null;\n" +
                     "        ResultSet rs = null;\n" +
                     "        PreparedStatement ps = null;\n" +
@@ -2050,7 +2496,7 @@ class AutoOriginal {
                     "            long t1 = new Date().getTime();\n" +
                     "            for (int i = 0; i < list.size(); i++) {\n" +
                     "                if (autoId) {\n" +
-                    "                    list.get(i).set" + lowStr_hump(id, true) + "("+(idType.equals("java.lang.Long")?"DataBase.db.getOnlyIdDistributed()":"DataBase.db.getOnlyIdNumber(\""+db_entity.name+"\",\""+id+"\")")+");\n" +
+                    "                    list.get(i).set" + lowStr_hump(id, true) + "(" + (idType.equals("java.lang.Long") ? "DataBase.db.getOnlyIdDistributed()" : "DataBase.db.getOnlyIdNumber(\"" + db_entity.name + "\",\"" + id + "\")") + ");\n" +
                     "                }\n" +
                     "                AutoSqlEntity ase = list.get(i).toInsert();\n" +
                     "                if (i == 0) {\n" +
@@ -2181,29 +2627,177 @@ class AutoOriginal {
                 "import gzb.tools.ListPage;\n" +
                 "import java.util.List;\n" +
                 "public interface " + 表名_驼峰_首字母大写 + "Dao {\n" +
-                "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find("+idType+" " + lowStr_hump(id) + ");\n" +
+                "    /**\n" +
+                "     * 查询单条数据，如果查询结果不是一条那么会返回 null\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + "Id 实体类 主键ID\n" +
+                "     * @return " + 表名_驼峰_首字母大写 + " 实体类对象\n" +
+                "     * */\n" +
+                "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(" + idType + " " + lowStr_hump(id) + ");\n" +
+                "    /**\n" +
+                "     * 查询单条数据，如果查询结果不是一条那么会返回 null\n" +
+                "     * @param sql sql语句\n" +
+                "     * @param arr 对应sql中的 ?\n" +
+                "     * @return " + 表名_驼峰_首字母大写 + " 实体类对象\n" +
+                "     * */\n" +
                 "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(String sql, Object[] arr);\n" +
+                "    /**\n" +
+                "     * 查询单条数据，如果查询结果不是一条那么会返回 null\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成查询语句\n" +
+                "     * @return " + 表名_驼峰_首字母大写 + " 实体类对象\n" +
+                "     * */\n" +
                 "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
-                "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache("+idType+" " + id + ",int mm);\n" +
+                "    /**\n" +
+                "     * 查询单条数据，如果查询结果不是一条那么会返回 null\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + "Id 实体类 主键ID\n" +
+                "     * @param mm 缓存时间（秒）\n" +
+                "     * @return " + 表名_驼峰_首字母大写 + " 实体类对象\n" +
+                "     * */\n" +
+                "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(" + idType + " " + lowStr_hump(id) + ",int mm);\n" +
+                "    /**\n" +
+                "     * 查询单条数据，如果查询结果不是一条那么会返回 null\n" +
+                "     * @param sql sql语句\n" +
+                "     * @param arr 对应sql中的 ?\n" +
+                "     * @param mm 缓存时间（秒）\n" +
+                "     * @return " + 表名_驼峰_首字母大写 + " 实体类对象\n" +
+                "     * */\n" +
                 "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(String sql, Object[] arr,int mm);\n" +
+                "    /**\n" +
+                "     * 查询单条数据，如果查询结果不是一条那么会返回 null\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成查询语句\n" +
+                "     * @param mm 缓存时间（秒）\n" +
+                "     * @return " + 表名_驼峰_首字母大写 + " 实体类对象\n" +
+                "     * */\n" +
                 "    " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ",int mm);\n" +
+                "    /**\n" +
+                "     * 查询数据\n" +
+                "     * @param sql sql语句\n" +
+                "     * @param arr 对应sql中的 ?\n" +
+                "     * @return List<" + 表名_驼峰_首字母大写 + "> 对象\n" +
+                "     * */\n" +
                 "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "Query(String sql, Object[] arr);\n" +
+                "    /**\n" +
+                "     * 查询数据\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成查询语句\n" +
+                "     * @return List<" + 表名_驼峰_首字母大写 + "> 对象\n" +
+                "     * */\n" +
                 "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "Query(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
+                "    /**\n" +
+                "     * 查询数据 返回分页对象\n" +
+                "     * @param sql sql语句\n" +
+                "     * @param arr 对应sql中的 ?\n" +
+                "     * @param page 页码\n" +
+                "     * @param limit 每页长度\n" +
+                "     * @return ListPage 对象\n" +
+                "     * */\n" +
                 "    ListPage " + 表名_驼峰_首字母小写 + "Query(String sql, Object[] arr, int page, int limit);\n" +
+                "    /**\n" +
+                "     * 查询数据 返回分页对象\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成查询语句\n" +
+                "     * @param page 页码\n" +
+                "     * @param limit 每页长度\n" +
+                "     * @param maxPage 最大页码，无法超出\n" +
+                "     * @param maxLimit 最大每页长度，无法超出\n" +
+                "     * @return ListPage 对象\n" +
+                "     * */\n" +
                 "    ListPage " + 表名_驼峰_首字母小写 + "Query(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", int page, int limit, int maxPage, int maxLimit);\n" +
+                "    /**\n" +
+                "     * 查询数据\n" +
+                "     * @param sql sql语句\n" +
+                "     * @param arr 对应sql中的 ?\n" +
+                "     * @param mm 缓存时间（秒）\n" +
+                "     * @return List<" + 表名_驼峰_首字母大写 + "> 对象\n" +
+                "     * */\n" +
                 "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "QueryCache(String sql, Object[] arr, int mm);\n" +
+                "    /**\n" +
+                "     * 查询数据\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成查询语句\n" +
+                "     * @param mm 缓存时间（秒）\n" +
+                "     * @return List<" + 表名_驼峰_首字母大写 + "> 对象\n" +
+                "     * */\n" +
                 "    List<" + 表名_驼峰_首字母大写 + "> " + 表名_驼峰_首字母小写 + "QueryCache(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", int mm);\n" +
+                "    /**\n" +
+                "     * 查询数据 返回分页对象\n" +
+                "     * @param sql sql语句\n" +
+                "     * @param arr 对应sql中的 ?\n" +
+                "     * @param page 页码\n" +
+                "     * @param limit 每页长度\n" +
+                "     * @param mm 缓存时间（秒）\n" +
+                "     * @return ListPage 对象\n" +
+                "     * */\n" +
                 "    ListPage " + 表名_驼峰_首字母小写 + "QueryCache(String sql, Object[] arr, int page, int limit, int mm);\n" +
+                "    /**\n" +
+                "     * 查询数据 返回分页对象\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成查询语句\n" +
+                "     * @param page 页码\n" +
+                "     * @param limit 每页长度\n" +
+                "     * @param maxPage 最大页码，无法超出\n" +
+                "     * @param maxLimit 最大每页长度，无法超出\n" +
+                "     * @param mm 缓存时间（秒）\n" +
+                "     * @return ListPage 对象\n" +
+                "     * */\n" +
                 "    ListPage " + 表名_驼峰_首字母小写 + "QueryCache(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", int page, int limit, int maxPage, int maxLimit, int mm);\n" +
+                "    /**\n" +
+                "     * 删除数据\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Delete语句\n" +
+                "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                "     * */\n" +
                 "    int " + 表名_驼峰_首字母小写 + "Delete(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
+                "    /**\n" +
+                "     * 插入数据\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Insert语句\n" +
+                "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                "     * */\n" +
                 "    int " + 表名_驼峰_首字母小写 + "Insert(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
+                "    /**\n" +
+                "     * 修改数据\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Update语句 （while条件只能是 主键id）\n" +
+                "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                "     * */\n" +
                 "    int " + 表名_驼峰_首字母小写 + "Update(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
-                "    int " + 表名_驼峰_首字母小写 + "Batch(List<" + 表名_驼峰_首字母大写 + "> list, boolean autoId);\n" +
-                "    int " + 表名_驼峰_首字母小写 + "Batch(List<" + 表名_驼峰_首字母大写 + "> list);\n" +
+                "    /**\n" +
+                "     * 批量插入数据\n" +
+                "     * @param list 实体类List 框架会根据该List对象生成Insert语句\n" +
+                "     * @param autoId 为true时 自动给每个对象生成一个 主键id 否则 不做操作 默认为false\n" +
+                "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                "     * */\n" +
+                "    int " + 表名_驼峰_首字母小写 + "InsertBatch(List<" + 表名_驼峰_首字母大写 + "> list, boolean autoId);\n" +
+                "    /**\n" +
+                "     * 批量插入数据\n" +
+                "     * @param list 实体类List 框架会根据该List对象生成Insert语句 且 自动给每个对象生成一个 主键id （自己给的id会被覆盖掉）\n" +
+                "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                "     * */\n" +
+                "    int " + 表名_驼峰_首字母小写 + "InsertBatch(List<" + 表名_驼峰_首字母大写 + "> list);\n" +
+                "    /**\n" +
+                "     * 批量插入数据\n" +
+                "     * @param sql sql语句\n" +
+                "     * @param list list的每一条数据都与 sql的?对应\n" +
+                "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                "     * */\n" +
                 "    int " + 表名_驼峰_首字母小写 + "Batch(String sql, List<Object[]> list);\n" +
+                "    /**\n" +
+                "     * 异步批量插入数据\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Inser语句\n" +
+                "     * @param auto 为true时 自动给每个对象生成一个 主键id 否则 不做操作 默认为false\n" +
+                "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                "     * */\n" +
                 "    int " + 表名_驼峰_首字母小写 + "InsertAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", boolean auto);\n" +
+                "    /**\n" +
+                "     * 异步批量插入数据\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Inser语句 且 自动给每个对象生成一个 主键id （自己给的id会被覆盖掉）\n" +
+                "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                "     * */\n" +
                 "    int " + 表名_驼峰_首字母小写 + "InsertAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
+                "    /**\n" +
+                "     * 异步批量删除数据\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Delete语句\n" +
+                "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                "     * */\n" +
                 "    int " + 表名_驼峰_首字母小写 + "DeleteAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
+                "    /**\n" +
+                "     * 异步批量修改数据\n" +
+                "     * @param " + 表名_驼峰_首字母小写 + " 实体类对象 框架会根据该实体类对象生成Update语句（while条件只能是 主键id）\n" +
+                "     * @return int 大于0为执行成功，小于0为出现异常\n" +
+                "     * */\n" +
                 "    int " + 表名_驼峰_首字母小写 + "UpdateAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ");\n" +
                 "}";
 
@@ -2255,7 +2849,7 @@ class AutoOriginal {
                 "        return list;\n" +
                 "    }\n" +
                 "    @Override\n" +
-                "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find("+idType+" " + id + ") {\n" +
+                "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "Find(" + idType + " " + id + ") {\n" +
                 "        List<" + 表名_驼峰_首字母大写 + "> list = " + 表名_驼峰_首字母小写 + "Query(\"select * from \"+DataBase." + 表名_驼峰_首字母小写 + "Name+\" where " + id + "=?\", Tools.toArray(" + id + "));\n" +
                 "        if (list.size() != 1) {\n" +
                 "            return null;\n" +
@@ -2290,8 +2884,8 @@ class AutoOriginal {
                 "        }\n" +
                 "        return list.get(0);\n" +
                 "    }\n" +
-                "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache("+idType+" " + id + ",int mm) {\n" +
-                "        List<" + 表名_驼峰_首字母大写 + "> list = " + 表名_驼峰_首字母小写 + "QueryCache(\"select * from \"+DataBase." + 表名_驼峰_首字母小写 + "Name+\" where " + id + "=?\", Tools.toArray(" + id + "),mm);\n" +
+                "    public " + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + "FindCache(" + idType + " " + lowStr_hump(id) + ",int mm) {\n" +
+                "        List<" + 表名_驼峰_首字母大写 + "> list = " + 表名_驼峰_首字母小写 + "QueryCache(\"select * from \"+DataBase." + 表名_驼峰_首字母小写 + "Name+\" where " + id + "=?\", Tools.toArray(" + lowStr_hump(id) + "),mm);\n" +
                 "        if (list.size() != 1) {\n" +
                 "            return null;\n" +
                 "        }\n" +
@@ -2422,7 +3016,7 @@ class AutoOriginal {
                 "\n" +
                 "    @Override\n" +
                 "    public int " + 表名_驼峰_首字母小写 + "Insert(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ") {\n" +
-                "        " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "("+(idType.equals("java.lang.Long")?"DataBase.db.getOnlyIdDistributed()":"DataBase.db.getOnlyIdNumber(\""+entity.name+"\",\""+id+"\")")+");\n" +
+                "        " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "(" + (idType.equals("java.lang.Long") ? "DataBase.db.getOnlyIdDistributed()" : "DataBase.db.getOnlyIdNumber(\"" + entity.name + "\",\"" + id + "\")") + ");\n" +
                 "        AutoSqlEntity ase = " + 表名_驼峰_首字母小写 + ".toInsert();\n" +
                 "        return DataBase.db.runSqlUpdateOrSaveOrDelete(ase.sql, ase.objs);\n" +
                 "    }\n" +
@@ -2442,7 +3036,7 @@ class AutoOriginal {
                 "    @Override\n" +
                 "    public int " + 表名_驼峰_首字母小写 + "InsertAsy(" + 表名_驼峰_首字母大写 + " " + 表名_驼峰_首字母小写 + ", boolean auto) {\n" +
                 "        if (auto) {\n" +
-                "            " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "("+(idType.equals("java.lang.Long")?"DataBase.db.getOnlyIdDistributed()":"DataBase.db.getOnlyIdNumber(\""+entity.name+"\",\""+id+"\")")+");\n" +
+                "            " + 表名_驼峰_首字母小写 + ".set" + lowStr_hump(id, true) + "(" + (idType.equals("java.lang.Long") ? "DataBase.db.getOnlyIdDistributed()" : "DataBase.db.getOnlyIdNumber(\"" + entity.name + "\",\"" + id + "\")") + ");\n" +
                 "        }\n" +
                 "        AutoSqlEntity ase = " + 表名_驼峰_首字母小写 + ".toInsert();\n" +
                 "        return DataBase.db.addAsyInfo(ase.sql, ase.objs);\n" +
@@ -2461,12 +3055,12 @@ class AutoOriginal {
                 "    }\n" +
                 "\n" +
                 "    @Override\n" +
-                "    public int " + 表名_驼峰_首字母小写 + "Batch(List<" + 表名_驼峰_首字母大写 + "> list) {\n" +
-                "        return " + 表名_驼峰_首字母小写 + "Batch(list, true);\n" +
+                "    public int " + 表名_驼峰_首字母小写 + "InsertBatch(List<" + 表名_驼峰_首字母大写 + "> list) {\n" +
+                "        return " + 表名_驼峰_首字母小写 + "InsertBatch(list, true);\n" +
                 "    }\n" +
                 "\n" +
                 "    @Override\n" +
-                "    public int " + 表名_驼峰_首字母小写 + "Batch(List<" + 表名_驼峰_首字母大写 + "> list, boolean autoId) {\n" +
+                "    public int " + 表名_驼峰_首字母小写 + "InsertBatch(List<" + 表名_驼峰_首字母大写 + "> list, boolean autoId) {\n" +
                 "        Connection conn = null;\n" +
                 "        ResultSet rs = null;\n" +
                 "        PreparedStatement ps = null;\n" +
@@ -2475,7 +3069,7 @@ class AutoOriginal {
                 "            long t1 = new Date().getTime();\n" +
                 "            for (int i = 0; i < list.size(); i++) {\n" +
                 "                if (autoId) {\n" +
-                "                    list.get(i).set" + lowStr_hump(id, true) + "("+(idType.equals("java.lang.Long")?"DataBase.db.getOnlyIdDistributed()":"DataBase.db.getOnlyIdNumber(\""+entity.name+"\",\""+id+"\")")+");\n" +
+                "                    list.get(i).set" + lowStr_hump(id, true) + "(" + (idType.equals("java.lang.Long") ? "DataBase.db.getOnlyIdDistributed()" : "DataBase.db.getOnlyIdNumber(\"" + entity.name + "\",\"" + id + "\")") + ");\n" +
                 "                }\n" +
                 "                AutoSqlEntity ase = list.get(i).toInsert();\n" +
                 "                if (i == 0) {\n" +
@@ -2631,7 +3225,7 @@ class AutoOriginal {
                 code6 += 列名_小写 + "";
                 code7 += "?";
                 code2 += "        if (" + 列名_驼峰_小写 + " != null){sb.append(\"\\\"" + 列名_驼峰_小写 + "\\\":\\\"\").append(" + 列名_驼峰_小写 + ").append(\"\\\"\");}\n";
-                code10+="                .append(this."+列名_驼峰_小写+"==null?\"\":this."+列名_驼峰_小写+")\n" +
+                code10 += "                .append(this." + 列名_驼峰_小写 + "==null?\"\":this." + 列名_驼峰_小写 + ")\n" +
                         "                .append(\"')\").toString();\n";
 
             } else {
@@ -2639,7 +3233,7 @@ class AutoOriginal {
                 code7 += "?,";
                 code2 += "        if (" + 列名_驼峰_小写 + " != null){sb.append(\"\\\"" + 列名_驼峰_小写 + "\\\":\\\"\").append(" + 列名_驼峰_小写 + ").append(\"\\\",\");}\n";
 
-                code10+="                .append(this."+列名_驼峰_小写+"==null?\"\":this."+列名_驼峰_小写+")\n" +
+                code10 += "                .append(this." + 列名_驼峰_小写 + "==null?\"\":this." + 列名_驼峰_小写 + ")\n" +
                         "                .append(\"','\")\n";
             }
         }
@@ -2825,7 +3419,7 @@ class AutoOriginal {
                 code6 += 列名_小写 + "";
                 code7 += "?";
                 code2 += "        if (" + 列名_驼峰_小写 + " != null){sb.append(\"\\\"" + 列名_驼峰_小写 + "\\\":\\\"\").append(" + 列名_驼峰_小写 + ").append(\"\\\"\");}\n";
-                code10+="                .append(this."+列名_驼峰_小写+"==null?\"\":this."+列名_驼峰_小写+")\n" +
+                code10 += "                .append(this." + 列名_驼峰_小写 + "==null?\"\":this." + 列名_驼峰_小写 + ")\n" +
                         "                .append(\"')\").toString();\n";
             } else {
                 code6 += 列名_小写 + ",";
@@ -2833,7 +3427,7 @@ class AutoOriginal {
                 code2 += "        if (" + 列名_驼峰_小写 + " != null){sb.append(\"\\\"" + 列名_驼峰_小写 + "\\\":\\\"\").append(" + 列名_驼峰_小写 + ").append(\"\\\",\");}\n";
 
 
-                code10+="                .append(this."+列名_驼峰_小写+"==null?\"\":this."+列名_驼峰_小写+")\n" +
+                code10 += "                .append(this." + 列名_驼峰_小写 + "==null?\"\":this." + 列名_驼峰_小写 + ")\n" +
                         "                .append(\"','\")\n";
             }
         }

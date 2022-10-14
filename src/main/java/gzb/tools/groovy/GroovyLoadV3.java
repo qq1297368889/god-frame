@@ -7,12 +7,16 @@ import gzb.tools.Tools;
 import gzb.tools.config.StaticClasses;
 import gzb.tools.entity.GroovyLoadV2Entity;
 import gzb.tools.entity.GroovyReturnEntity;
+import gzb.tools.entity.UploadEntity;
 import gzb.tools.log.ColorEnum;
 import gzb.tools.thread.GzbThread;
 import gzb.tools.thread.ThreadPool;
 import jline.internal.Log;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,6 +26,7 @@ import java.util.Map;
 public class GroovyLoadV3 {
     public static Map<String, GroovyLoadV2Entity> groovyClassMap = new HashMap<>();
     public static Map<String, String> fileName_webPath = new HashMap<>();
+
     static {
         init();
     }
@@ -29,15 +34,15 @@ public class GroovyLoadV3 {
 
     public static final void init() {
         try {
-            String  groovyPackage = StaticClasses.groovyApiFolder;
+            String groovyPackage = StaticClasses.groovyApiFolder;
             String[] ss1 = groovyPackage.split(",");
             for (String folder : ss1) {
-                loadFolder(folder,true);
+                loadFolder(folder, true);
             }
             if (StaticClasses.groovyLoadType.equals("file")) {
                 ThreadPool.start(new GzbThread() {
                     @Override
-                    public void start(){
+                    public void start() {
                         while (true) {
                             try {
                                 for (String folder : ss1) {
@@ -47,11 +52,11 @@ public class GroovyLoadV3 {
                                         if (file.getName().indexOf(".java") > -1 || file.getName().indexOf(".groovy") > -1) {
                                             String webPath = fileName_webPath.get(file.getParent() + "/" + file.getName());
                                             if (webPath == null) {
-                                                loadFile(file,true);
+                                                loadFile(file, true);
                                             } else {
                                                 GroovyLoadV2Entity groovyLoadV2Entity = groovyClassMap.get(webPath);
                                                 if (groovyLoadV2Entity.updateTime != file.lastModified()) {
-                                                    loadFile(file,false);
+                                                    loadFile(file, false);
                                                 }
                                             }
                                         }
@@ -77,20 +82,20 @@ public class GroovyLoadV3 {
         }
     }
 
-    public static void loadFile(File file,boolean notRepeat) throws Exception {
+    public static void loadFile(File file, boolean notRepeat) throws Exception {
         GroovyLoadV2Entity entity;
         GroovyClassLoader classLoader = new GroovyClassLoader(Thread.currentThread().getContextClassLoader());
         Class testGroovyClass = classLoader.parseClass(new GroovyCodeSource(file));
         Map<String, List<String>> parameterName = new HashMap<>();
         Map<String, Class[]> parameterType = new HashMap<>();
         Method[] methods = testGroovyClass.getMethods();
-        Object []arr1 = getWebPath(testGroovyClass);
-        if (notRepeat && groovyClassMap.get(arr1[0].toString())!=null){
-            System.out.println(ColorEnum.getColor(5)+"终止运行，servlet(重复)类:" + testGroovyClass.getSimpleName());
+        Object[] arr1 = getWebPath(testGroovyClass);
+        if (notRepeat && groovyClassMap.get(arr1[0].toString()) != null) {
+            System.out.println(ColorEnum.getColor(5) + "终止运行，servlet(重复)类:" + testGroovyClass.getSimpleName());
             throw new Exception();
         }
         fileName_webPath.put(file.getParent() + "/" + file.getName(), arr1[0].toString());
-        entity = new GroovyLoadV2Entity(file.getParent() + "/" + file.getName(), testGroovyClass, file.lastModified(), parameterName, parameterType,String.valueOf(arr1[1]),Boolean.valueOf(arr1[2].toString()));
+        entity = new GroovyLoadV2Entity(file.getParent() + "/" + file.getName(), testGroovyClass, file.lastModified(), parameterName, parameterType, String.valueOf(arr1[1]), Boolean.valueOf(arr1[2].toString()));
         groovyClassMap.put(arr1[0].toString(), entity);
         for (Method method : methods) {
             if (isShield(method.getName())) {
@@ -113,18 +118,19 @@ public class GroovyLoadV3 {
     }
 
     public static final Object[] getWebPath(Class class1) {
-        Object []arr1 = new Object[3];
+        Object[] arr1 = new Object[3];
         try {
+
             Request request1 = (Request) class1.getAnnotation(Request.class);
             if (request1 == null) {
                 arr1[0] = class1.getSimpleName();
-                arr1[1]="*/*";
-                arr1[2]=false;
+                arr1[1] = "*/*";
+                arr1[2] = false;
             } else {
                 arr1[0] = request1.url();
-                arr1[1]=request1.contentType();
-                arr1[2]=request1.crossDomain();
-                arr1[1]=arr1[1]==null?"*/*":arr1[1];
+                arr1[1] = request1.contentType();
+                arr1[2] = request1.crossDomain();
+                arr1[1] = arr1[1] == null ? "*/*" : arr1[1];
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -135,8 +141,8 @@ public class GroovyLoadV3 {
         if (arr1[0].toString().substring(arr1[0].toString().length() - 1, arr1[0].toString().length()).equals("/") == false) {
             arr1[0] = arr1[0] + "/";
         }
-        while (arr1[0].toString().indexOf("//")>-1){
-            arr1[0]=arr1[0].toString().replaceAll("//","/");
+        while (arr1[0].toString().indexOf("//") > -1) {
+            arr1[0] = arr1[0].toString().replaceAll("//", "/");
         }
         return arr1;
     }
@@ -184,16 +190,26 @@ public class GroovyLoadV3 {
                 .replaceAll("  ", " ")
                 .replaceAll(", ", ",")
                 .replaceAll(name + "\\(", name + " (")
-                .replaceAll(" \\)", ")");
+                .replaceAll(" \\)", ")")
+                .replaceAll("\\[]", "[] ")
+                .replaceAll(" \\[]", "[]")
+        ;
+        while (allCode.indexOf("  ") > -1) {
+            allCode = allCode.replaceAll("  ", " ");
+        }
+        while (allCode.indexOf(", ") > -1) {
+            allCode = allCode.replaceAll(", ", ",");
+        }
         List<String> list1 = Tools.textMid(allCode, name + " (", ")");
         for (int i = 0; i < list1.size(); i++) {
+            Log.info(list1.get(i));
             String[] ss1 = list1.get(i).split(",");
             if (ss1.length + 0 == classes.length + 0) {
                 int len = 0;
                 for (int i1 = 0; i1 < classes.length; i1++) {
                     String[] ss2 = ss1[i1].split(" ");
                     if (ss2.length > 1) {
-                        if (classes[i1].getName().indexOf(ss2[0]) > -1) {
+                        if (classes[i1].getName().indexOf(ss2[0].replaceAll("\\[]","")) > -1) {
                             len++;
                         }
                     }
@@ -214,15 +230,16 @@ public class GroovyLoadV3 {
         return list;
     }
 
-    public static void loadFolder(String folder,boolean notRepeat) throws Exception {
+    public static void loadFolder(String folder, boolean notRepeat) throws Exception {
         List<File> list = Tools.fileSub(folder, 2);
         while (list.size() > 0) {
             File file = list.remove(list.size() - 1);
             if (file.getName().indexOf(".java") > -1 || file.getName().indexOf(".groovy") > -1) {
-                loadFile(file,notRepeat);
+                loadFile(file, notRepeat);
             }
         }
     }
+
     public static void loadNet(String httpUrl) throws Exception {
 
     }
@@ -237,7 +254,7 @@ public class GroovyLoadV3 {
         return groovyReturnEntity;
     }
 
-    public static Object call(GroovyReturnEntity groovyReturnEntity, String name, Map<String, Object[]> parameter) {
+    public static Object callWeb(GroovyReturnEntity groovyReturnEntity, String name, Map<String, String[]> parameter, HttpServletRequest request) throws Exception {
         GroovyObject object = groovyReturnEntity.object;
         GroovyLoadV2Entity entity = groovyReturnEntity.entity;
         List<String> list_name;
@@ -245,7 +262,6 @@ public class GroovyLoadV3 {
         if (entity == null) {
             return Tools.jsonFail("API:400");
         }
-
         if (isShield(name)) {
             return Tools.jsonFail("API:400");
         }
@@ -269,7 +285,53 @@ public class GroovyLoadV3 {
                 o1 = parameter.get(list_name.get(i));
             }
             if (o1 == null || o1.length < 1) {
-                listPara.add(null);
+                if (classes[i].getName().equals("[Ljava.io.File;")) {
+                    List<File>list1= Tools.webUploadFile(request,list_name.get(i));
+                    if(list1!=null && list1.size()>0){
+                        File[] arr=new File[list1.size()];
+                        for (int i1 = 0; i1 < list1.size(); i1++) {
+                            arr[i1]=list1.get(i1);
+                        }
+                        listPara.add(arr);
+                    }else{
+                        listPara.add(null);
+                    }
+                } else if (classes[i].getName().equals("java.io.File")) {
+                    List<File>list1= Tools.webUploadFile(request,list_name.get(i));
+                    if(list1!=null && list1.size()>0){
+                        File[] arr=new File[list1.size()];
+                        for (int i1 = 0; i1 < list1.size(); i1++) {
+                            arr[i1]=list1.get(i1);
+                        }
+                        listPara.add(arr[0]);
+                    }else{
+                        listPara.add(null);
+                    }
+                }  else if (classes[i].getName().equals("[Lgzb.tools.entity.UploadEntity;")) {
+                    List<UploadEntity>list1= Tools.webUploadEntity(request,list_name.get(i));
+                    if(list1!=null && list1.size()>0){
+                        UploadEntity[] arr=new UploadEntity[list1.size()];
+                        for (int i1 = 0; i1 < list1.size(); i1++) {
+                            arr[i1]=list1.get(i1);
+                        }
+                        listPara.add(arr);
+                    }else{
+                        listPara.add(null);
+                    }
+                }  else if (classes[i].getName().equals("gzb.tools.entity.UploadEntity")) {
+                    List<UploadEntity>list1= Tools.webUploadEntity(request,list_name.get(i));
+                    if(list1!=null && list1.size()>0){
+                        UploadEntity[] arr=new UploadEntity[list1.size()];
+                        for (int i1 = 0; i1 < list1.size(); i1++) {
+                            arr[i1]=list1.get(i1);
+                        }
+                        listPara.add(arr[0]);
+                    }else{
+                        listPara.add(null);
+                    }
+                } else {
+                    listPara.add(null);
+                }
             } else {
                 if (classes[i].getName().equals("[I")) {
                     int[] arr = new int[o1.length];
@@ -373,20 +435,10 @@ public class GroovyLoadV3 {
                         arr[k] = String.valueOf(o1[k].toString());
                     }
                     listPara.add(arr);
-                } else if (classes[i].getName().equals("[Ljava.io.File;")) {
-                    File[] arr = new File[o1.length];
-                    for (int k = 0; k < o1.length; k++) {
-                        arr[k] = (File) o1[k];
-                    }
-                    listPara.add(arr);
-                } else if (classes[i].getName().equals("java.io.File")) {
-                    listPara.add((File) o1[0]);
                 } else if (classes[i].getName().equals("double")) {
                     listPara.add(Double.valueOf(o1[0].toString()));
                 } else if (classes[i].getName().equals("int")) {
                     listPara.add(Integer.valueOf(o1[0].toString()));
-                } else if (classes[i].getName().equals("byte")) {
-                    listPara.add(Byte.valueOf(o1[0].toString()));
                 } else if (classes[i].getName().equals("short")) {
                     listPara.add(Short.valueOf(o1[0].toString()));
                 } else if (classes[i].getName().equals("long")) {
@@ -413,8 +465,6 @@ public class GroovyLoadV3 {
                     listPara.add(Short.valueOf(o1[0].toString()));
                 } else if (classes[i].getName().equals("java.lang.Character")) {
                     listPara.add(Character.valueOf(o1[0].toString().toCharArray()[0]));
-                } else if (classes[i].getName().equals("java.lang.Byte")) {
-                    listPara.add(Byte.valueOf(o1[0].toString()));
                 } else {
                     listPara.add(null);
                 }

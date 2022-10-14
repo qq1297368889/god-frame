@@ -8,6 +8,7 @@ import gzb.tools.DateTime;
 import gzb.tools.Tools;
 import gzb.tools.cache.Cache;
 import gzb.tools.config.StaticClasses;
+import gzb.tools.log.ColorEnum;
 import gzb.tools.log.LogImpl;
 import gzb.tools.thread.GzbThread;
 import gzb.tools.thread.ThreadPool;
@@ -61,7 +62,7 @@ public class DB {
             this.db_acc = Tools.configGetString("gzb.db." + db_name + ".acc", "root");
             this.db_pwd = Tools.configGetString("gzb.db." + db_name + ".pwd", "root");
             this.db_auto = Tools.configGetString("gzb.db." + db_name + ".auto", "true");
-            this.db_threadMax = Tools.configGetString("gzb.db." + db_name + ".threadMax", (Runtime.getRuntime().availableProcessors()*2) + "");
+            this.db_threadMax = Tools.configGetString("gzb.db." + db_name + ".threadMax", (Runtime.getRuntime().availableProcessors() * 2) + "");
             this.db_overtime = Tools.configGetString("gzb.db." + db_name + ".overtime", "3000");
         } catch (Exception e) {
             e.printStackTrace();
@@ -165,7 +166,7 @@ public class DB {
 
     //返回一个不会重复的id redis 或者 map  自增
     public int getOnlyIdNumber(String mapName, String idName) {
-        return Tools.getOnlyIdNumber(mapName,idName,this);
+        return Tools.getOnlyIdNumber(mapName, idName, this);
     }
 
     public int getMaxId_db_private(String mapName, String idName) {
@@ -186,7 +187,7 @@ public class DB {
             sb.append("毫秒");
 
             if (rs.next()) {
-                String data=rs.getString(idName);
+                String data = rs.getString(idName);
                 sb.append(",res:").append(data);
                 return Integer.valueOf(data);
             } else {
@@ -224,7 +225,6 @@ public class DB {
 
     public void asyThread() {
         DB db = this;
-        Map<String, String> m1 = new HashMap<>();
         ThreadPool.start(new GzbThread() {
             @Override
             public void start() {
@@ -234,22 +234,26 @@ public class DB {
                 long t1 = 0l, t2 = 0l, t3 = 0l, t4 = 0l;
                 Object[] objs;
                 AsyEntity asyEntity;
-                Map<String, AsyEntity> map;
+                Map<String, AsyEntity> map = null;
                 StringBuilder sb;
                 Map.Entry<String, AsyEntity> en;
-                Iterator<Object[]> iterator;
                 while (true) {
                     try {
-                        if (mapAskSql == null || mapAskSql.size() == 0) {
-                            Thread.sleep(StaticClasses.asySleepHm);
-                            continue;
-                        }
+                        boolean run1 = true;
                         lockAsk.lock();
                         try {
-                            map = mapAskSql;
-                            mapAskSql = new HashMap<>();
+                            if (mapAskSql == null || mapAskSql.size() == 0) {
+                                run1 = false;
+                            } else {
+                                map = mapAskSql;
+                                mapAskSql = new HashMap<>();
+                            }
                         } finally {
                             lockAsk.unlock();
+                        }
+                        if (!run1) {
+                            Thread.sleep(StaticClasses.asySleepHm);
+                            continue;
                         }
                         conn = db.getConnection();
                         try {
@@ -262,45 +266,44 @@ public class DB {
                                 if (asyEntity == null || asyEntity.list.size() < 1) {
                                     continue;
                                 }
-                                iterator = asyEntity.list.iterator();
                                 int num = 0;
                                 t1 = new Date().getTime();
-                                while (iterator.hasNext()) {
-                                    objs = iterator.next();
-                                    if (m1.get(objs[0].toString()) != null) {
-                                        Log.i(objs[0]);
+                                asyEntity.lock.lock();
+                                try {
+                                    for (Iterator<Object[]> iterator = asyEntity.list.iterator(); iterator.hasNext(); ) {
+                                        objs = iterator.next();
+                                        for (int j = 0; j < objs.length; j++) {
+                                            ps.setObject(j + 1, objs[j]);
+                                        }
+                                        ps.addBatch();
+                                        num++;
+                                        if (num % StaticClasses.asyBatchNum == 0 || !iterator.hasNext()) {
+                                            t2 = new Date().getTime();
+                                            t3 = new Date().getTime();
+                                            ps.executeBatch();
+                                            conn.commit();
+                                            t4 = new Date().getTime();
+                                            sb.append("组装耗时:")
+                                                    .append(t2 - t1)
+                                                    .append("毫秒")
+                                                    .append(",执行耗时:")
+                                                    .append(t4 - t3)
+                                                    .append("毫秒")
+                                                    .append("[")
+                                                    .append(num)
+                                                    .append("条]")
+                                                    .append(",SQL:")
+                                                    .append(en.getKey());
+                                            Log.sql(sb.toString());
+                                            sb.delete(0, sb.length());
+                                            num = 0;
+                                            t1 = new Date().getTime();
+                                        }
                                     }
-                                    m1.put(objs[0].toString(), "1");
-                                    for (int j = 0; j < objs.length; j++) {
-                                        ps.setObject(j + 1, objs[j]);
-                                    }
-                                    ps.addBatch();
-                                    num++;
-                                    if (num % StaticClasses.asyBatchNum == 0 || !iterator.hasNext()) {
-                                        t2 = new Date().getTime();
-                                        t3 = new Date().getTime();
-                                        ps.executeBatch();
-                                        conn.commit();
-                                        t4 = new Date().getTime();
-                                        sb.append("组装耗时:")
-                                                .append(t2 - t1)
-                                                .append("毫秒")
-                                                .append(",执行耗时:")
-                                                .append(t4 - t3)
-                                                .append("毫秒")
-                                                .append("[")
-                                                .append(num)
-                                                .append("条]")
-                                                .append(",SQL:")
-                                                .append(en.getKey());
-                                        Log.sql(sb.toString());
-                                        sb.delete(0, sb.length());
-                                        num = 0;
-                                        t1 = new Date().getTime();
-                                    }
+                                } finally {
+                                    asyEntity.lock.unlock();
                                 }
                             }
-
                         } finally {
                             try {
                                 conn.setAutoCommit(true);
@@ -314,8 +317,9 @@ public class DB {
                     }
                 }
             }
-        }, "DB.asy", false);
+        }, "DB.asy", false, (Runtime.getRuntime().availableProcessors()));
     }
+
 }
 
 class AsyEntity {

@@ -14,6 +14,7 @@ import org.springframework.boot.system.ApplicationHome;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -21,6 +22,7 @@ import javax.servlet.http.Part;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -406,25 +408,45 @@ public class Tools {
         return json;
     }
 
-    public static final Map<String, List<UploadEntity>> webFileUpload(HttpServletRequest request, String filePath) throws Exception {
+    public static final String toMD5Path(String rootPath, String md5) {
+        String t = rootPath
+                .replaceAll("\\\\", "/")
+                .replaceAll("//", "/")
+                .replaceAll("//", "/")
+                .replaceAll("//", "/")
+                .replaceAll("//", "/");
+        if (!t.substring(t.length() - 1).equals("/")) {
+            t += "/";
+        }
+        t+=md5.substring(0,3)+"/"+md5.substring(3,6)+"/"+md5.substring(6)+"/";
+        return t;
+    }
 
-        Collection<Part> parts = request.getParts();
-        if (filePath == null) {
-            filePath = System.getProperty("java.io.tmpdir");
-        }
-        filePath = filePath.replaceAll("\\\\", "/");
-        if (filePath.substring(filePath.length() - 1).equals("/") == false) {
-            filePath += "/";
-        }
-        Map<String, List<UploadEntity>> map = new HashMap<>();
-        String fileName;
+    public static final List<File> webUploadFile(HttpServletRequest request, String requestName) throws Exception {
+        Map<String, List<File>> map = webUploadFile(request);
+        return map.get(requestName);
+    }
+
+    public static final Map<String, List<File>> webUploadFile(HttpServletRequest request) throws Exception {
+        Map<String, List<File>> map = new HashMap<>();
         InputStream inputStream;
         FileOutputStream fos;
         Part part;
         byte[] bytes;
         String md5;
         File file;
-        List<UploadEntity> list;
+        List<File> list;
+        Collection<Part> parts = request.getParts();
+        String filePath = StaticClasses.uploadPath;
+        if (filePath == null) {
+            filePath = System.getProperty("java.io.tmpdir");
+        }
+        file = new File(filePath);
+        if (!file.exists()) {
+            Log.i("文件上传目录不存在（gzb.upload.path）：" + file.getPath() + "/" + file.getName());
+            return map;
+        }
+        filePath = file.getPath() + "/";
         for (Iterator<Part> iterator = parts.iterator(); iterator.hasNext(); ) {
             part = iterator.next();
             Log.i("参数名=" + part.getName() +
@@ -434,17 +456,64 @@ public class Tools {
             inputStream = part.getInputStream();
             bytes = inputStream.readAllBytes();
             md5 = toMd5(bytes);
-            String[] ss1 = part.getSubmittedFileName().split("\\.");
-            if (ss1.length >= 2) {
-                fileName = md5 + "." + ss1[ss1.length - 1];
-            } else {
-                fileName = md5 + ".data";
-            }
-            file = new File(filePath + md5.substring(0, 3) + "/" + md5.substring(3, 6) + "/" + md5.substring(6, 9) + "/" + fileName);
+            file = new File(toMD5Path(filePath,md5) + part.getSubmittedFileName());
             if (!file.exists()) {
                 file.getParentFile().mkdirs();
                 file.createNewFile();
+                fos = new FileOutputStream(file);
+                fos.write(bytes, 0, bytes.length);
+                inputStream.close();
+                fos.flush();
+                fos.close();
+            }
+            list = map.get(part.getName());
+            if (list == null) {
+                list = new ArrayList<>();
+            }
+            list.add(file);
+            map.put(part.getName(), list);
+        }
+        return map;
+    }
 
+    public static final List<UploadEntity> webUploadEntity(HttpServletRequest request, String requestName) throws Exception {
+        Map<String, List<UploadEntity>> map = webUploadEntity(request);
+        return map.get(requestName);
+    }
+
+    public static final Map<String, List<UploadEntity>> webUploadEntity(HttpServletRequest request) throws Exception {
+        Map<String, List<UploadEntity>> map = new HashMap<>();
+        InputStream inputStream;
+        FileOutputStream fos;
+        Part part;
+        byte[] bytes;
+        String md5;
+        File file;
+        List<UploadEntity> list;
+        Collection<Part> parts = request.getParts();
+        String filePath = StaticClasses.uploadPath;
+        if (filePath == null) {
+            filePath = System.getProperty("java.io.tmpdir");
+        }
+        file = new File(filePath);
+        if (!file.exists()) {
+            Log.i("文件上传目录不存在（gzb.upload.path）：" + file.getPath() + "/" + file.getName());
+            return map;
+        }
+        filePath = file.getPath() + "/";
+        for (Iterator<Part> iterator = parts.iterator(); iterator.hasNext(); ) {
+            part = iterator.next();
+            Log.i("参数名=" + part.getName() +
+                    " / 文件名=" + part.getSubmittedFileName() +
+                    " / 文件类型=" + part.getContentType() +
+                    " / 字节流长度=" + part.getInputStream().available());
+            inputStream = part.getInputStream();
+            bytes = inputStream.readAllBytes();
+            md5 = toMd5(bytes);
+            file = new File(toMD5Path(filePath,md5)+ part.getSubmittedFileName());
+            if (!file.exists()) {
+                file.getParentFile().mkdirs();
+                file.createNewFile();
                 fos = new FileOutputStream(file);
                 fos.write(bytes, 0, bytes.length);
                 inputStream.close();
@@ -457,7 +526,7 @@ public class Tools {
             }
             UploadEntity uploadEntity = new UploadEntity();
             uploadEntity.setFile(file);
-            uploadEntity.setFileName(fileName);
+            uploadEntity.setFileName(part.getSubmittedFileName());
             uploadEntity.setFilePath(filePath + md5.substring(0, 3) + "/" + md5.substring(3, 6) + "/" + md5.substring(6, 9) + "/");
             uploadEntity.setMd5(md5);
             uploadEntity.setFileType(part.getContentType());
