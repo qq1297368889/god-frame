@@ -4,11 +4,13 @@ import gzb.tools.Tools;
 import gzb.tools.cache.Cache;
 import gzb.tools.cache.GzbCacheMap;
 import gzb.tools.cache.GzbCacheRedis;
+import gzb.tools.groovy.GroovyLoadV3;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class StaticClasses {
+    public static GroovyLoadV3 groovyLoad;
     public static Lock lock1;
 
     public static boolean showLog = false;
@@ -87,6 +89,10 @@ public class StaticClasses {
 
             staticPath=staticPath.replaceAll("\\.\\./","");
             groovyApiFolder = groovyApiFolder.replaceAll("\\\\", "/");
+
+
+
+            groovyLoad = new GroovyLoadV3();
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(e);

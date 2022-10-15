@@ -14,22 +14,26 @@ import gzb.tools.thread.GzbThread;
 import gzb.tools.thread.ThreadPool;
 import jline.internal.Log;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-public class GroovyLoadV3 {
+//支持自动装配
+public class GroovyLoadV4 {
     public static Map<String, GroovyLoadV2Entity> groovyClassMap = new HashMap<>();
     public static Map<String, String> fileName_webPath = new HashMap<>();
 
     static {
         init();
+        try {
+            Auto.autoLoadDaoImpl();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
 
     }
 
@@ -71,7 +75,7 @@ public class GroovyLoadV3 {
                             }
                         }
                     }
-                }, "GroovyLoadV3", true);
+                }, "GroovyLoadV4", true);
             } else if (StaticClasses.groovyLoadType.equals("http")) {
                 String urls = Tools.configGetString("gzb.groovy.load.urls", "");
                 String[] arr1 = urls.split(",");
@@ -253,6 +257,7 @@ public class GroovyLoadV3 {
             return null;
         }
         Object obj1=groovyReturnEntity.entity.aClass.getDeclaredConstructor().newInstance();
+        Auto.getDaoImpl(groovyReturnEntity.entity.aClass,obj1);
         groovyReturnEntity.object = (GroovyObject) obj1;
         return groovyReturnEntity;
     }

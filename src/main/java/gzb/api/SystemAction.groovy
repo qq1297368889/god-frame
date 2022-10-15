@@ -7,13 +7,8 @@ import gzb.db.gzb_system.entity.FileManager
 import gzb.db.gzb_system.entity.GzbUsers
 import gzb.tools.DateTime
 import gzb.tools.Tools
-import gzb.tools.cache.GzbCache
-import gzb.tools.cache.GzbCacheMap
-import gzb.tools.cache.GzbCacheMsql
-import gzb.tools.cache.GzbCacheRedis
 import gzb.tools.config.StaticClasses
 import gzb.tools.entity.UploadEntity
-import gzb.tools.groovy.AutoLoad
 import gzb.tools.groovy.Request
 import gzb.tools.img.PicUtils
 import gzb.tools.log.Log
@@ -26,14 +21,10 @@ import java.nio.file.Files
 import java.text.SimpleDateFormat
 
 @Request(url = "system", contentType = "application/json;charset=UTF-8", crossDomain = false)
-class SystemAction {
-    static BaseDao dao = new BaseDaoImpl();
-    static Log log = new LogImpl(SystemAction.class);
+class SystemAction extends BaseAction{
+    public static Log log = new LogImpl(SystemAction.class);
 
-    HttpServletRequest request;
-    HttpServletResponse response;
-    Session session;
-    DateTime dateTime = new DateTime();
+
     //http://ip:port/system/lockWindow
     public Object lockWindow() {
         try {
@@ -120,6 +111,7 @@ class SystemAction {
 
     public Object readUserInfo(Integer all) {
         try {
+
             GzbUsers gzbUsers = getLoginInfo();
             if (gzbUsers == null) {
                 return Tools.jsonJump(StaticClasses.loginPage);

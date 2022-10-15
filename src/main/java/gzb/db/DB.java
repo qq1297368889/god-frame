@@ -32,7 +32,7 @@ public class DB {
     public String db_auto;
     public String db_threadMax;
     public String db_overtime;
-    private HikariDataSource cpds = null;
+    public HikariDataSource cpds = null;
     public Map<String, AsyEntity> mapAskSql = new HashMap<>();
     public Lock lockAsk = new ReentrantLock();
 

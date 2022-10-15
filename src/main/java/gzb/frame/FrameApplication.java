@@ -1,5 +1,7 @@
 package gzb.frame;
 
+import gzb.tools.config.StaticClasses;
+import gzb.tools.groovy.GroovyLoadV3;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -12,8 +14,7 @@ import java.lang.reflect.Method;
 @Configuration
 @ServletComponentScan(basePackages = "gzb.tools.servlet")
 @SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
-public class FrameApplication {
-
+public class FrameApplication extends StaticClasses {
     public static void main(String[] args) {
         disableAccessWarnings();
         SpringApplication.run(FrameApplication.class, args);

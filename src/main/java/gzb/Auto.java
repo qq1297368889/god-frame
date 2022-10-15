@@ -1,24 +1,80 @@
 package gzb;
 
+import groovy.lang.GroovyClassLoader;
+import groovy.lang.GroovyCodeSource;
 import gzb.db.DB;
+import gzb.db.gzb_system.DataBase;
 import gzb.tools.Tools;
 import gzb.tools.log.LogImpl;
 
 import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.Date;
 
 public class Auto {
-
-    public static void main(String[] args) {
+    static gzb.tools.log.Log Log = new LogImpl(Auto.class);
+    public static Map<String,Object> mapClass=new HashMap<>();
+    public static void main(String[] args) throws IOException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         // 郭振帮最伟大，天下无敌，绝世无双，人见人爱，花见花开，少女杀手，少妇领主
         // 2019-10-09
         //pay_system
         //gzb_system
         generate(null, "gzb_system", "*", true, true);
 
+
     }
+    //自动装配
+    public static final void getDaoImpl(Class class1,Object obj1) throws IllegalAccessException {
+        Field []fields=class1.getFields();
+        for (Field field : fields) {
+            Object obj2=mapClass.get(field.getType().getName());
+            if (obj2!= null){
+                field.setAccessible(true);
+                field.set(obj1,obj2);
+            }
+        }
+    }
+    //生成 dao impl
+    public static final void autoLoadDaoImpl() throws Exception {
+        String projectPath = Tools.configGetString("gzb.frame.auto.project.path", null);
+        String dbName = Tools.configGetString("gzb.frame.auto.db.name", null);
+        String tableName = Tools.configGetString("gzb.frame.auto.table.name", null);
+        String type = Tools.configGetString("gzb.frame.auto.type", null);
+        String baseDao = Tools.configGetString("gzb.frame.auto.base.dao", null);
+
+         Map<String,String> map;
+        if (type.equals("1")) {//1为 以数据库内名称为准 2驼峰 默认2
+            if (baseDao.equals("1")) {//1basedao  2每个表生成dao
+                map=AutoOriginal.generateImpl(dbName, tableName,true, DataBase.db);
+            }else{
+                map=AutoOriginal.generateImpl(dbName, tableName,false, DataBase.db);
+            }
+        } else {
+            if (baseDao.equals("1")) {//1basedao  2每个表生成dao
+                map=AutoHump.generateImpl(dbName, tableName,true, DataBase.db);
+            }else{
+                map=AutoHump.generateImpl(dbName, tableName,false, DataBase.db);
+            }
+        }
+        GroovyClassLoader classLoader = new GroovyClassLoader(Thread.currentThread().getContextClassLoader());
+        String url1="";
+        for (Iterator<Map.Entry<String, String>> it = map.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<String, String> en = it.next();
+            Log.i(en.getKey());
+            url1=System.getProperty("java.io.tmpdir")+new Date().getTime()+".so";
+            Tools.fileSaveString(url1,en.getValue(),false,"UTF-8");
+            Class testGroovyClass = classLoader.parseClass(new GroovyCodeSource(new File(url1)));
+            Class[] classes =testGroovyClass.getInterfaces();
+            for (Class aClass : classes) {
+                mapClass.put(aClass.getName(),testGroovyClass.getDeclaredConstructor().newInstance());
+            }
+        }
+    }
+
 
     /**
      * @param projectPath 项目路径 为空默认调用 Tools.getProjectPath()
@@ -77,6 +133,32 @@ class AutoHump {
     private static DB db;
     static String mapName = "*";
 
+    public static Map<String,String> generateImpl(String dbName1, String mapName1, boolean baseDao,DB db1) {
+        Map<String,String>map=new HashMap<>();
+        try {
+            dbName = dbName1;
+            mapName = mapName1;
+            db = db1;
+            type = baseDao ? 0 : 1;
+            pkg = Tools.getProjectPath() + "../src/main/java/gzb/";
+            List<DB_entity> list = getMapInfo(mapName);
+            Log.print(list);
+            if (type == 0) {
+                map.put("db."+dbName+".dao.BaseDaoImpl",baseDaoImplCode(list));
+            }else{
+                for (DB_entity db_entity : list) {
+                    map.put("db."+dbName+".dao."+lowStr_hump((db_entity.name), true) + "DaoImpl",daoImplCode(db_entity));
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return map;
+
+
+    }
+
     public static void generate(String dbName1, String mapName1, boolean baseDao) {
         try {
             dbName = dbName1;
@@ -100,7 +182,7 @@ class AutoHump {
                 new File(path).mkdirs();
                 Tools.fileSaveString(path + "BaseDao.java", code, false);
                 //baseDaoImplCode 生成
-                code = baseDaoImplCode(list);
+              code = baseDaoImplCode(list);
                 path = pkg + "/db/" + dbName + "/dao/";
                 new File(path).mkdirs();
                 Tools.fileSaveString(path + "BaseDaoImpl.java", code, false);
@@ -1865,6 +1947,31 @@ class AutoOriginal {
     static String pkg;
     private static DB db;
     static String mapName = "*";
+
+    public static Map<String,String> generateImpl(String dbName1, String mapName1, boolean baseDao,DB db1) {
+        Map<String,String>map=new HashMap<>();
+        try {
+            dbName = dbName1;
+            mapName = mapName1;
+            db = db1;
+            type = baseDao ? 0 : 1;
+            pkg = Tools.getProjectPath() + "../src/main/java/gzb/";
+            List<DB_entity> list = getMapInfo(mapName);
+            Log.print(list);
+            if (type == 0) {
+                map.put("db."+dbName+".dao.BaseDaoImpl",baseDaoImplCode(list));
+            }else{
+                for (DB_entity db_entity : list) {
+                    map.put("db."+dbName+".dao."+lowStr_hump((db_entity.name), true) + "DaoImpl",daoImplCode(db_entity));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return map;
+
+
+    }
 
     public static void generate(String dbName1, String mapName1, boolean baseDao) {
         try {

@@ -1,18 +1,7 @@
 package gzb.tools.servlet;
-
-import gzb.tools.DateTime;
-import gzb.tools.Tools;
-import gzb.tools.cache.Cache;
 import gzb.tools.config.StaticClasses;
 import gzb.tools.entity.GroovyReturnEntity;
-import gzb.tools.groovy.GroovyLoadV3;
-import gzb.tools.log.Log;
-import gzb.tools.log.LogImpl;
 import gzb.tools.session.SessionTool;
-import io.undertow.servlet.handlers.DefaultServlet;
-import org.springframework.web.servlet.DispatcherServlet;
-
-import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -24,8 +13,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -60,7 +47,7 @@ public class Controller extends HttpServlet {
             for (int i = 1; i < arr1.length - 1; i++) {
                 sb.append(arr1[i]).append('/');
             }
-            GroovyReturnEntity groovyReturnEntity = GroovyLoadV3.newObject(sb.toString());
+            GroovyReturnEntity groovyReturnEntity = StaticClasses.groovyLoad.newObject(sb.toString());
             if (groovyReturnEntity == null) {
                 if (flowStaticLimit()) {
                     response.setStatus(403);
@@ -82,10 +69,10 @@ public class Controller extends HttpServlet {
                 response.setHeader("Access-Control-Max-Age", "180");
                 response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
             }
-            GroovyLoadV3.setVariable(groovyReturnEntity, "request", request);
-            GroovyLoadV3.setVariable(groovyReturnEntity, "response", response);
-            GroovyLoadV3.setVariable(groovyReturnEntity, "session", SessionTool.getSession(request, response, StaticClasses.sessionUseTime));
-            Object object = GroovyLoadV3.callWeb(groovyReturnEntity, arr1[arr1.length - 1], request.getParameterMap(), request);
+            StaticClasses.groovyLoad.setVariable(groovyReturnEntity, "request", request);
+            StaticClasses.groovyLoad.setVariable(groovyReturnEntity, "response", response);
+            StaticClasses.groovyLoad.setVariable(groovyReturnEntity, "session", SessionTool.getSession(request, response, StaticClasses.sessionUseTime));
+            Object object = StaticClasses.groovyLoad.callWeb(groovyReturnEntity, arr1[arr1.length - 1], request.getParameterMap(), request);
             if (object != null) {
                 sendData(request, response, object.toString(), groovyReturnEntity);
                 return;
@@ -98,7 +85,7 @@ public class Controller extends HttpServlet {
             if (StaticClasses.flowStaticMax > 0 || StaticClasses.flowApiMax > 0) {
                 lock.lock();
                 try {
-                    if (thisFlow>0)thisFlow--;
+                    if (thisFlow > 0) thisFlow--;
                 } finally {
                     lock.unlock();
                 }

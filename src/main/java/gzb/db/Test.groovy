@@ -15,11 +15,7 @@ class Test {
     static Log log = new LogImpl(Test.class)
 
     static void main(String[] args) {
-        test2()
-    }
-
-    static def test2() {
-
+        test1()
     }
 
     static def test1() {
@@ -29,8 +25,6 @@ class Test {
             @Override
             void start() throws Exception {
                 for (int i = 0; i < 1000000; i++) {
-                    //DataBase.db.addAsyInfo
-                    //DataBase.db.runSqlUpdateOrSaveOrDelete
                     DataBase.db.addAsyInfo("insert into " + DataBase.gzbUsersName + "(gzb_users_id,gzb_users_acc,gzb_users_pwd,gzb_users_phone,gzb_users_mailbox,gzb_users_time,gzb_users_state) values(?,?,?,?,?,?,?)"
                             , new Object[]{
                             DataBase.db.getOnlyIdDistributed(),

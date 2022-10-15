@@ -1,7 +1,7 @@
 package gzb.tools.groovy;
 
 public @interface AutoLoad {
-    //baseDao路径
+    //实现类
     Class clz();
 
 }
