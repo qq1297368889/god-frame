@@ -95,7 +95,7 @@ public class GroovyLoadV3 {
             throw new Exception();
         }
         fileName_webPath.put(file.getParent() + "/" + file.getName(), arr1[0].toString());
-        entity = new GroovyLoadV2Entity(file.getParent() + "/" + file.getName(), testGroovyClass, file.lastModified(), parameterName, parameterType, String.valueOf(arr1[1]), Boolean.valueOf(arr1[2].toString()));
+        entity = new GroovyLoadV2Entity(file.getParent() + "/" + file.getName(), testGroovyClass,testGroovyClass.getDeclaredConstructor().newInstance(), file.lastModified(), parameterName, parameterType, String.valueOf(arr1[1]), Boolean.valueOf(arr1[2].toString()), Boolean.valueOf(arr1[3].toString()));
         groovyClassMap.put(arr1[0].toString(), entity);
         for (Method method : methods) {
             if (isShield(method.getName())) {

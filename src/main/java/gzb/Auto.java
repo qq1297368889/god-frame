@@ -5,6 +5,7 @@ import groovy.lang.GroovyCodeSource;
 import gzb.db.DB;
 import gzb.db.gzb_system.DataBase;
 import gzb.tools.Tools;
+import gzb.tools.config.StaticClasses;
 import gzb.tools.log.LogImpl;
 
 import java.io.File;
@@ -23,9 +24,7 @@ public class Auto {
         // 2019-10-09
         //pay_system
         //gzb_system
-        // generate(null, "gzb_system", "*", true, true);
-
-
+        generate(null, "gzb_system", "*", true, true);
     }
 
     //自动装配
@@ -77,7 +76,9 @@ public class Auto {
             Class testGroovyClass = classLoader.parseClass(new GroovyCodeSource(new File(url1)));
             Class[] classes = testGroovyClass.getInterfaces();
             for (Class aClass : classes) {
-                mapClass.put(aClass.getName(), testGroovyClass.getDeclaredConstructor().newInstance());
+                if (aClass.getName().equals("groovy.lang.GroovyObject") == false) {
+                    mapClass.put(aClass.getName(), testGroovyClass.getDeclaredConstructor().newInstance());
+                }
             }
         }
     }
@@ -171,10 +172,9 @@ class AutoHump {
             mapName = mapName1;
             db = new DB(dbName);
             type = baseDao ? 0 : 1;
-            pkg = Tools.getProjectPath() + "../src/main/java/gzb/";
+            pkg = Tools.getProjectPath() + "src/main/java/gzb/";
             List<DB_entity> list = getMapInfo(mapName);
             Log.print(list);
-
             String code, path;
             //database 生成
             code = dataBaseCode(list);
@@ -1869,19 +1869,18 @@ class AutoHump {
         PreparedStatement ps = null;
         ResultSet rs = meta.getTables(null, null, null, Tools.toArrayString("TABLE"));
         while (rs.next()) {
-            String tbname = rs.getString("TABLE_NAME").toLowerCase();
-            if (mapNames.equals("*") == false && mapNames.indexOf(tbname + "/") < 0) {
-                System.out.println("跳过表:" + tbname);
+            String tbName = rs.getString("TABLE_NAME").toLowerCase();
+            if (mapNames.equals("*") == false && mapNames.indexOf(tbName + "/") < 0) {
+                System.out.println("跳过表:" + tbName);
                 continue;
             }
             DB_entity mi = new DB_entity();
-            mi.name = tbname;
-            ps = conn.prepareStatement("select * from " + tbname + " limit 1");
+            mi.name = tbName;
+            ps = conn.prepareStatement("select * from " + tbName + " limit 1");
             ResultSetMetaData col = ps.getMetaData();
-            ResultSet rst = meta.getPrimaryKeys(null, null, tbname);
+            ResultSet rst = meta.getPrimaryKeys(null, null, tbName);
             rst.next();
-            String idname = rst.getString("COLUMN_NAME");
-            mi.id = idname;
+            mi.id = rst.getString("COLUMN_NAME");
             mi.subName = new ArrayList<String>();
             mi.subType = new ArrayList<String>();
             for (int i = 1; i <= col.getColumnCount(); i++) {
@@ -1961,7 +1960,6 @@ class AutoOriginal {
             mapName = mapName1;
             db = db1;
             type = baseDao ? 0 : 1;
-            pkg = Tools.getProjectPath() + "../src/main/java/gzb/";
             List<DB_entity> list = getMapInfo(mapName);
             Log.print(list);
             if (type == 0) {
@@ -1985,7 +1983,7 @@ class AutoOriginal {
             mapName = mapName1;
             db = new DB(dbName);
             type = baseDao ? 0 : 1;
-            pkg = Tools.getProjectPath() + "../src/main/java/gzb/";
+            pkg = Tools.getProjectPath() + "src/main/java/gzb/";
             List<DB_entity> list = getMapInfo(mapName);
             Log.print(list);
 
@@ -3690,8 +3688,7 @@ class AutoOriginal {
             ResultSetMetaData col = ps.getMetaData();
             ResultSet rst = meta.getPrimaryKeys(null, null, tbname);
             rst.next();
-            String idname = rst.getString("COLUMN_NAME");
-            mi.id = idname;
+            mi.id = rst.getString("COLUMN_NAME");
             mi.subName = new ArrayList<String>();
             mi.subType = new ArrayList<String>();
             for (int i = 1; i <= col.getColumnCount(); i++) {

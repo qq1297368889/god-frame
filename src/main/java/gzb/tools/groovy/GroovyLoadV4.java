@@ -104,7 +104,9 @@ public class GroovyLoadV4 {
             throw new Exception();
         }
         fileName_webPath.put(file.getParent() + "/" + file.getName(), arr1[0].toString());
-        entity = new GroovyLoadV2Entity(file.getParent() + "/" + file.getName(), testGroovyClass, file.lastModified(), parameterName, parameterType, String.valueOf(arr1[1]), Boolean.valueOf(arr1[2].toString()));
+        entity = new GroovyLoadV2Entity(file.getParent() + "/" + file.getName(), testGroovyClass, testGroovyClass.getDeclaredConstructor().newInstance(),
+                file.lastModified(), parameterName, parameterType, String.valueOf(arr1[1]),
+                Boolean.valueOf(arr1[2].toString()),Boolean.valueOf(arr1[3].toString()));
         groovyClassMap.put(arr1[0].toString(), entity);
         for (Method method : methods) {
             if (isShield(method.getName())) {
@@ -127,7 +129,7 @@ public class GroovyLoadV4 {
     }
 
     public static final Object[] getWebPath(Class class1) {
-        Object[] arr1 = new Object[3];
+        Object[] arr1 = new Object[4];
         try {
 
             Request request1 = (Request) class1.getAnnotation(Request.class);
@@ -135,10 +137,12 @@ public class GroovyLoadV4 {
                 arr1[0] = class1.getSimpleName();
                 arr1[1] = "*/*";
                 arr1[2] = false;
+                arr1[3] = false;
             } else {
                 arr1[0] = request1.url();
                 arr1[1] = request1.contentType();
                 arr1[2] = request1.crossDomain();
+                arr1[3] = request1.single();
                 arr1[1] = arr1[1] == null ? "*/*" : arr1[1];
             }
         } catch (Exception e) {
@@ -261,7 +265,12 @@ public class GroovyLoadV4 {
         if (groovyReturnEntity.entity == null) {
             return null;
         }
-        Object obj1=groovyReturnEntity.entity.aClass.getDeclaredConstructor().newInstance();
+        Object obj1;
+        if (groovyReturnEntity.entity.single == true) {
+            obj1=groovyReturnEntity.entity.obj;
+        }else{
+            obj1=groovyReturnEntity.entity.aClass.getDeclaredConstructor().newInstance();
+        }
         Auto.getDaoImpl(groovyReturnEntity.entity.aClass,obj1);
         Field[]fields=groovyReturnEntity.entity.aClass.getFields();
         for (Field field : fields) {

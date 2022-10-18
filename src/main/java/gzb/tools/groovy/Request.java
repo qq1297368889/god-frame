@@ -12,4 +12,6 @@ public @interface Request {
     String contentType() default "*/*";
     //是否允许 跨域
     boolean crossDomain() default false;
+    //是否单例 true 单例 、false 多例 默认多例
+    boolean single() default false;
 }

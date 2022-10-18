@@ -9,10 +9,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 public class BaseAction {
-    public static BaseDao dao=new BaseDaoImpl();
+    // baseDao request response session 会自动装配
 
+    public static BaseDao dao=null;
     public HttpServletRequest request;
     public HttpServletResponse response;
     public Session session;
     public DateTime dateTime = new DateTime();
+
 }

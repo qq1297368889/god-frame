@@ -2,6 +2,7 @@ package gzb.tools.servlet;
 
 import gzb.tools.config.StaticClasses;
 import gzb.tools.entity.GroovyReturnEntity;
+import gzb.tools.groovy.GroovyLoadV4;
 import gzb.tools.session.SessionTool;
 
 import javax.servlet.ServletException;
@@ -24,6 +25,9 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Controller extends HttpServlet {
     static int thisFlow = 0;
     static Lock lock = new ReentrantLock();
+    static{
+        StaticClasses.groovyLoad = new GroovyLoadV4();
+    }
 /*
 
     @Override

@@ -670,17 +670,25 @@ public class Tools {
         return System.getProperty("os.name").toLowerCase().indexOf("linux") >= 0;
     }
 
+
     /**
      * 获取项目路径
      */
     public static final String getProjectPath() {
-        if (ProjectPath != null) {
+        if (ProjectPath != null && ProjectPath.length()>0) {
             return ProjectPath;
         }
         ApplicationHome home = new ApplicationHome(Tools.class);
         String basePath = home.getSource().getParentFile().toString();
-        ProjectPath = basePath.replaceAll("\\\\", "/") + "/";
+        ProjectPath = basePath.replaceAll("\\\\", "/") .replaceAll("/target","")+ "/";
         return ProjectPath;
+    }
+
+    public static final String getSystemPath() {
+        return ProjectPath;
+    }
+    public static final void setSystemPath(String path) {
+        ProjectPath=path;
     }
 
     /**
@@ -715,12 +723,16 @@ public class Tools {
 
     public static final String configGetString(String key, String defVal) throws Exception {
         String fileUrl = getProjectPath() + "application.properties";
-        File f = new File(fileUrl);
+        File f = new File(fileUrl+"");
         if (!f.exists()) {
-            fileUrl = getProjectPath() + "classes/application.properties";
+            fileUrl = getProjectPath() + "target/application.properties";
             f = new File(fileUrl);
             if (!f.exists()) {
-                return null;
+                fileUrl = getProjectPath() + "target/classes/application.properties";
+                f = new File(fileUrl);
+                if (!f.exists()) {
+                    return null;
+                }
             }
         }
         return configGetString(fileUrl, key, defVal);

@@ -8,7 +8,10 @@ import gzb.tools.cache.GzbCacheMsql;
 import gzb.tools.cache.GzbCacheRedis;
 import gzb.tools.groovy.GroovyLoadV3;
 import gzb.tools.groovy.GroovyLoadV4;
+import jline.internal.Log;
+import org.springframework.boot.system.ApplicationHome;
 
+import java.sql.SQLException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -18,7 +21,6 @@ public class StaticClasses {
 
     public static boolean showLog = false;
     public static String sessionType;
-
     public static long sessionUseTime;
     public static boolean httpsession = false;
     public static String cacheType;
@@ -53,7 +55,6 @@ public class StaticClasses {
 
     //固定 3位数 服务器编号 --- AUTO ---
     public static int devName;
-
     static {
         try {
             loginPage = Tools.configGetString("gzb.system.login.page", "login.html");
@@ -68,6 +69,7 @@ public class StaticClasses {
             groovyLoadUrl = Tools.configGetString("gzb.groovy.load.url", null);
             uploadPath = Tools.configGetString("gzb.upload.path", System.getProperty("java.io.tmpdir"));
             uploadPathTmp = Tools.configGetString("gzb.upload.path.tmp", System.getProperty("java.io.tmpdir"));
+
 
             asyBatchNum = Tools.configGetInteger("gzb.db.asy.batch.num", "10000");
             asySleepHm = Tools.configGetInteger("gzb.db.asy.sleep.hm", "1000");
@@ -94,7 +96,6 @@ public class StaticClasses {
 
 
             lock1 = new ReentrantLock();
-            groovyLoad = new GroovyLoadV4();
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(e);
