@@ -41,7 +41,7 @@ public class ThreadPool {
                 thread.setName(name + "-" + i);
             }
             thread.start();
-            System.out.println(thread.getName() + ",线程启动........");
+           // System.out.println(thread.getName() + ",线程启动........");
         }
 
     }

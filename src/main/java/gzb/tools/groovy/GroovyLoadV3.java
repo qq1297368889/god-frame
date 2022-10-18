@@ -42,33 +42,30 @@ public class GroovyLoadV3 {
                 loadFolder(folder, true);
             }
             if (StaticClasses.groovyLoadType.equals("file")) {
-                ThreadPool.start(new GzbThread() {
-                    @Override
-                    public void start() {
-                        while (true) {
-                            try {
-                                for (String folder : ss1) {
-                                    List<File> list = Tools.fileSub(folder, 2);
-                                    while (list.size() > 0) {
-                                        File file = list.remove(list.size() - 1);
-                                        if (file.getName().indexOf(".java") > -1 || file.getName().indexOf(".groovy") > -1) {
-                                            String webPath = fileName_webPath.get(file.getParent() + "/" + file.getName());
-                                            if (webPath == null) {
-                                                loadFile(file, true);
-                                            } else {
-                                                GroovyLoadV2Entity groovyLoadV2Entity = groovyClassMap.get(webPath);
-                                                if (groovyLoadV2Entity.updateTime != file.lastModified()) {
-                                                    loadFile(file, false);
-                                                }
+                ThreadPool.start(() -> {
+                    while (true) {
+                        try {
+                            for (String folder : ss1) {
+                                List<File> list = Tools.fileSub(folder, 2);
+                                while (list.size() > 0) {
+                                    File file = list.remove(list.size() - 1);
+                                    if (file.getName().indexOf(".java") > -1 || file.getName().indexOf(".groovy") > -1) {
+                                        String webPath = fileName_webPath.get(file.getParent() + "/" + file.getName());
+                                        if (webPath == null) {
+                                            loadFile(file, true);
+                                        } else {
+                                            GroovyLoadV2Entity groovyLoadV2Entity = groovyClassMap.get(webPath);
+                                            if (groovyLoadV2Entity.updateTime != file.lastModified()) {
+                                                loadFile(file, false);
                                             }
                                         }
                                     }
                                 }
-                                Thread.sleep(1000);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                                break;
                             }
+                            Thread.sleep(1000);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            break;
                         }
                     }
                 }, "GroovyLoadV3", true);

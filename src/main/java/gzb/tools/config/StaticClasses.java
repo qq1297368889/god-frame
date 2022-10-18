@@ -1,16 +1,19 @@
 package gzb.tools.config;
 
+import gzb.Auto;
 import gzb.tools.Tools;
 import gzb.tools.cache.Cache;
 import gzb.tools.cache.GzbCacheMap;
+import gzb.tools.cache.GzbCacheMsql;
 import gzb.tools.cache.GzbCacheRedis;
 import gzb.tools.groovy.GroovyLoadV3;
+import gzb.tools.groovy.GroovyLoadV4;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class StaticClasses {
-    public static GroovyLoadV3 groovyLoad;
+    public static GroovyLoadV4 groovyLoad;
     public static Lock lock1;
 
     public static boolean showLog = false;
@@ -52,8 +55,6 @@ public class StaticClasses {
     public static int devName;
 
     static {
-        lock1 = new ReentrantLock();
-        lock1.lock();
         try {
             loginPage = Tools.configGetString("gzb.system.login.page", "login.html");
             sessionUseTime = Tools.configGetInteger("gzb.session.useTime", "600");
@@ -92,14 +93,13 @@ public class StaticClasses {
 
 
 
-            groovyLoad = new GroovyLoadV3();
+            lock1 = new ReentrantLock();
+            groovyLoad = new GroovyLoadV4();
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(e);
-        } finally {
-            printAll();
-            lock1.unlock();
         }
+        printAll();
 
 
     }
@@ -109,41 +109,44 @@ public class StaticClasses {
         } else if (StaticClasses.cacheType.equals("redis")) {
             Cache.gzbCache = new GzbCacheRedis();
         } else if (StaticClasses.cacheType.equals("msql")) {
-            //Cache.gzbCache = new GzbCacheMsql();
+            Cache.gzbCache = new GzbCacheMsql();
         }
     }
 
 
-    public static void printAll() {
-        System.out.println(
-                "Config:[" +"\n"+
-                        "showLog=" + showLog + "," +"\n"+
-                        "sessionType=" + sessionType + "," +"\n"+
-                        "sessionUseTime=" + sessionUseTime + "," +"\n"+
-                        "httpsession=" + httpsession + "," +"\n"+
-                        "cacheType=" + cacheType + "," +"\n"+
-                        "thisDataBaseName=" + thisDataBaseName + "," +"\n"+
-                        "groovyLoadType=" + groovyLoadType + "," +"\n"+
-                        "groovyLoadUrl=" + groovyLoadUrl + "," +"\n"+
-                        "loginPage=" + loginPage + "," +"\n"+
-                        "uploadPath=" + uploadPath + "," +"\n"+
-                        "asyBatchNum=" + asyBatchNum + "," +"\n"+
-                        "asySleepHm=" + asySleepHm + "," +"\n"+
-                        "json_code=" + json_code + "," +"\n"+
-                        "json_state=" + json_state + "," +"\n"+
-                        "json_message=" + json_message + "," +"\n"+
-                        "json_jump=" + json_jump + "," +"\n"+
-                        "json_data=" + json_data + "," +"\n"+
-                        "json_entity_data=" + json_entity_data + "," +"\n"+
-                        "devName=" + devName + "," +"\n"+
-                        "staticPath=" + staticPath + "," +"\n"+
-                        "flowApiMax=" + flowApiMax + "," +"\n"+
-                        "flowStaticMax=" + flowStaticMax + "," +"\n"+
-                        "groovyApiFolder=" + groovyApiFolder + "," +"\n"+
-                        "]"
-
-
-        );
+    static void printAll() {
+        System.out.println("StaticClasses{" +
+                "groovyLoad=" + groovyLoad +
+                ", lock1=" + lock1 +
+                ", showLog=" + showLog +
+                ", sessionType='" + sessionType + '\'' +
+                ", sessionUseTime=" + sessionUseTime +
+                ", httpsession=" + httpsession +
+                ", cacheType='" + cacheType + '\'' +
+                ", thisDataBaseName='" + thisDataBaseName + '\'' +
+                ", groovyLoadType='" + groovyLoadType + '\'' +
+                ", groovyLoadUrl='" + groovyLoadUrl + '\'' +
+                ", loginPage='" + loginPage + '\'' +
+                ", uploadPath='" + uploadPath + '\'' +
+                ", uploadPathTmp='" + uploadPathTmp + '\'' +
+                ", staticPath='" + staticPath + '\'' +
+                ", asyBatchNum=" + asyBatchNum +
+                ", asySleepHm=" + asySleepHm +
+                ", flowApiMax=" + flowApiMax +
+                ", flowStaticMax=" + flowStaticMax +
+                ", groovyApiFolder='" + groovyApiFolder + '\'' +
+                ", json_code='" + json_code + '\'' +
+                ", json_state='" + json_state + '\'' +
+                ", json_message='" + json_message + '\'' +
+                ", json_jump='" + json_jump + '\'' +
+                ", json_data='" + json_data + '\'' +
+                ", json_entity_data='" + json_entity_data + '\'' +
+                ", json_page='" + json_page + '\'' +
+                ", json_limit='" + json_limit + '\'' +
+                ", json_count='" + json_count + '\'' +
+                ", json_next='" + json_next + '\'' +
+                ", devName=" + devName +
+                '}');
 
 
     }

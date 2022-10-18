@@ -118,13 +118,13 @@ public class LogImpl implements Log{
 
     private void append(StringBuffer sb, Object log) {
         StringBuffer sb_prv = new StringBuffer();
-        sb_prv
-                .append(new DateTime().formatDateTime())
-                .append("|Thread:")
+        sb_prv.append(new DateTime().formatDateTime())
+                .append('[')
                 .append(Thread.currentThread().getName())
-                .append("|class:")
+                .append('|')
                 .append(className)
-                .append("|")
+                .append(']')
+                .append(':')
                 .append(log)
                 .append("\r\n");
 

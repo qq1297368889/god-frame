@@ -328,6 +328,37 @@ public class Tools {
     public static final String json(Object state, Object message, Object object, Object jump) {
         return json(state, message, object, jump, null, null, null, null);
     }
+/*
+//老方法
+    public static final String json(Object state, Object message, Object object, Object jump) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder
+                .append("{")
+                .append("\"code\":\"0\",")
+
+                .append("\"state\":\"")
+                .append(state)
+                .append("\",")
+
+                .append("\"message\":\"")
+                .append(message)
+                .append("\",")
+
+                .append("\"jump\":\"")
+                .append(jump)
+                .append("\",")
+
+                .append("\"data\":")
+                .append(object)
+                .append("}");
+        String res = stringBuilder.toString()
+                .replaceAll("\r\n", "\\\\r\\\\n")
+                .replaceAll("\r", "\\\\r")
+                .replaceAll("\n", "\\\\n")
+                .replaceAll("\t", "\\\\t");
+        return res;
+    }
+*/
 
     public static final String json(Object state, Object message, Object object, Object jump, Object page, Object limit, Object count, Object next) {
         StringBuilder stringBuilder = new StringBuilder();
@@ -404,7 +435,7 @@ public class Tools {
                 .replaceAll("\r", "\\\\r")
                 .replaceAll("\n", "\\\\n")
                 .replaceAll("\t", "\\\\t");
-        Log.i(json);
+        //Log.i(json);
         return json;
     }
 

@@ -30,13 +30,13 @@ public class DataBase {
                 @Override
                 public void start() throws Exception {
                     while (true){
-                        contentManagerName = division(contentManagerName,Tools.configGetInteger("gzb.db.gzb_system.division.content_manager","0"));
-                        fileManagerName = division(fileManagerName,Tools.configGetInteger("gzb.db.gzb_system.division.file_manager","0"));
-                        gzbApiName = division(gzbApiName,Tools.configGetInteger("gzb.db.gzb_system.division.gzb_api","0"));
-                        gzbCacheName = division(gzbCacheName,Tools.configGetInteger("gzb.db.gzb_system.division.gzb_cache","0"));
-                        gzbGroupName = division(gzbGroupName,Tools.configGetInteger("gzb.db.gzb_system.division.gzb_group","0"));
-                        gzbRightName = division(gzbRightName,Tools.configGetInteger("gzb.db.gzb_system.division.gzb_right","0"));
-                        gzbUsersName = division(gzbUsersName,Tools.configGetInteger("gzb.db.gzb_system.division.gzb_users","0"));
+                        contentManagerName = db.division(contentManagerName,Tools.configGetInteger("gzb.db.gzb_system.division.content_manager","0"));
+                        fileManagerName = db.division(fileManagerName,Tools.configGetInteger("gzb.db.gzb_system.division.file_manager","0"));
+                        gzbApiName = db.division(gzbApiName,Tools.configGetInteger("gzb.db.gzb_system.division.gzb_api","0"));
+                        gzbCacheName = db.division(gzbCacheName,Tools.configGetInteger("gzb.db.gzb_system.division.gzb_cache","0"));
+                        gzbGroupName = db.division(gzbGroupName,Tools.configGetInteger("gzb.db.gzb_system.division.gzb_group","0"));
+                        gzbRightName = db.division(gzbRightName,Tools.configGetInteger("gzb.db.gzb_system.division.gzb_right","0"));
+                        gzbUsersName = db.division(gzbUsersName,Tools.configGetInteger("gzb.db.gzb_system.division.gzb_users","0"));
                         sleep(1000*60);
                     }
                 }

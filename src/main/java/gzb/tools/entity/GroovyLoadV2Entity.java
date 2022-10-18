@@ -1,11 +1,14 @@
 package gzb.tools.entity;
 
+import groovy.lang.GroovyObject;
+
 import java.util.List;
 import java.util.Map;
 
 public class GroovyLoadV2Entity {
     public String path;
     public Class aClass;
+    public GroovyObject obj;
     public long updateTime;
     public String contentType;
     public boolean crossDomain;

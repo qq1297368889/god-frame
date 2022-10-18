@@ -1,0 +1,138 @@
+我藏这么深应该没人能找到
+本全栈框架名：《自嗨》 又名 《god》 又名 《上地》 又名 《超级大鸡巴》
+笔名：郭振帮 小名：亲爱的 化名：爸爸 真名：老公
+福生无量天尊，阿弥陀魔
+本框架已经：
+           天下无敌
+     拳                 脚
+     打                 踢
+     南                 北
+     山                 海
+     敬                 幼
+     老                 儿
+     院                 园
+                              横扫天下
+
+
+功能说明：
+这里省略10000亿字（我真不是懒得写）..........
+
+****************************************
+2022-10-11 更新内容
+增加 实体类生成Insert语句 toInsert2,原因：吃饱撑的
+增加 tools.jsonxxxx 字段名支持配置文件 自定义
+增加 动态图片验证码
+增加 HTTP类 请求后自动更新cookie
+
+修改 HTTP类bug
+修改 bigint 类型的 ID生成策略bug
+修改 int类型id  不支持  现在已经支持
+修改 异步插入 写法升级 gzbUsers表 10W条插入 700-1000 毫秒
+修改 异步插入代码位置 从database 移动到了 db
+修改 db 静态变量 全部取消 修改为普通变量
+修改 数据库连接池 最大线程数默认为CPU核心数*2，以及一些数据库参数的默认值
+#####################################################################################################
+
+****************************************
+2022-10-12 更新内容
+
+增加 静态资源访问支持 gzb.static.path 指定 网站目录 绝对路径  ps：仅供测试 没做优化 正式环境 用nginx
+增加 注解 @request url 指定类访问路径 访问方式 url/方法名
+增加 注解 @request crossDomain 跨域选项
+增加 注解 @request Content-Type 内容指定
+增加 限流功能，限制 一段时间内可以提供多少次请求服务，防止大量请求进入 服务器崩溃
+
+修改 url匹配方式
+修改 持久层 代码 修改
+修改 readFile接口写法
+修改 controller 部分写法
+修改 groovy调用方式
+#####################################################################################################
+
+****************************************
+2022-10-14 更新内容
+改了一大波 一大波 不写了
+最终优化结果 正常调用框架进行插入 可达到 35W条一秒（同时进行查询，更新，删除）
+web层支持 上传文件映射到 参数的file
+#####################################################################################################
+
+****************************************
+2022-10-16 更新内容
+增加了自动注入 不过 感觉不方便  没有启用  gzb.tools.groovy.GroovyLoadV4
+#####################################################################################################
+
+****************************************
+2022-10-18 更新内容
+1 吃饱了撑到了，启用自动注入  gzb.tools.groovy.GroovyLoadV4
+2 进行了性能测试 同样多例模式 同机器  同样的api 一切环境都相同，对比 springMvc （如果是单例 吞吐量可以增加3000左右 因为单例无需每次都new对象）
+服务器：Undertow
+请求地址：/testApi/test?msg1=111&msg2=222&msg3=333
+请求量：100*10000 次（100个线程 每个线程请求10000次）
+设备：12C32G（由于测试工具也在本机，只能发挥50%性能）
+springMvc***************************：
+吞吐量：
+第1次测试：30803.351404632824/sec
+第2次测试：31011.59833777833/sec
+第3次测试：30955.918771669145/sec
+代码：
+@Scope("prototype")//设置为多例模式
+@Controller
+@RequestMapping(value = "testApi", produces = "application/json;charset=UTF-8")
+@ResponseBody()
+public class TestApi {
+    @RequestMapping(value = "test")
+    public String test(String msg1, String msg2, String msg3) {
+        return Tools.jsonSuccess(msg1 + msg2 + msg3);
+    }
+}
+
+本框架***************************：
+吞吐量：
+第1次测试：32945.67258590584/sec
+第2次测试：31898.944144948804/sec
+第3次测试：32309.133792123033/sec
+代码：gzb.api.TestApi
+@Request(url = "testApi", contentType = "application/json;charset=UTF-8", crossDomain = false)
+public class TestApi extends BaseAction {
+    public String test(String msg1, String msg2, String msg3) {
+        return Tools.jsonSuccess(msg1 + msg2 + msg3);
+    }
+}
+
+
+本框架 继续测试 包括 数据库操作的测试
+
+吞吐量：
+第1次测试：13124.906294429366/sec
+第2次测试：13504.388926401081/sec
+第3次测试：13322.675193178791/sec
+代码：gzb.api.TestApi
+@Request(url = "testApi", contentType = "application/json;charset=UTF-8", crossDomain = false)
+public class TestApi extends BaseAction {
+    public String test2() {    //testApi/test2
+        //插入数据 10条（伪异步jdbc）  Tools.getRandomString(12)获取一个随机12位字符串   dateTime.toString()获取当前时间 字符串格式
+        for (int i = 0; i < 10; i++) {
+            new GzbUsers().setGzbUsersAcc(Tools.getRandomString(12))
+                    .setGzbUsersPwd(Tools.getRandomString(12))
+                    .setGzbUsersMailbox(Tools.getRandomString(12)+"@qq.com")
+                    .setGzbUsersPhone("12345678901")
+                    .setGzbUsersState(1)
+                    .setGzbUsersTime(dateTime.toString())
+                    .saveAsy(dao);
+        }
+        return Tools.jsonSuccess("OK");
+    }
+}
+
+批量插入测试
+gzb.db.gzb_system.Test.main
+插入500W 耗时14-16秒 平均一秒31W-35W插入
+其他数据库类框架懒得测了 单方面宣布 无敌
+朕乏了 就这吧  end.bmp
+
+
+
+
+
+
+

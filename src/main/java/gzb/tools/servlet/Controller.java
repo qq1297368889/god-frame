@@ -1,7 +1,10 @@
 package gzb.tools.servlet;
+
 import gzb.tools.config.StaticClasses;
 import gzb.tools.entity.GroovyReturnEntity;
 import gzb.tools.session.SessionTool;
+
+import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -16,38 +19,78 @@ import java.nio.file.Path;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-@WebServlet("/*")
+@WebServlet(value = "/*", asyncSupported = true)
 @MultipartConfig
 public class Controller extends HttpServlet {
     static int thisFlow = 0;
     static Lock lock = new ReentrantLock();
+/*
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        CPU(request, response);
-
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
+        AsyncContext startAsync = request.startAsync();
+        startAsync.start(() -> {
+            try {
+                CPU(request, response);
+                startAsync.complete();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+        AsyncContext startAsync = request.startAsync();
+        startAsync.start(() -> {
+            try {
+                CPU(request, response);
+                startAsync.complete();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+*/
+
+    @Override
+    protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        super.doOptions(request, response);
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         CPU(request, response);
     }
 
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+        CPU(request, response);
+    }
 
-    private void CPU(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private void CPU(HttpServletRequest request, HttpServletResponse response) {
         try {
             response.setCharacterEncoding("UTF-8");
+            request.setCharacterEncoding("UTF-8");
             String url = request.getRequestURI();
-            while (url.indexOf("//") > -1) {
-                url = url.replaceAll("//", "/");
-            }
             String[] arr1 = url.split("/");
             StringBuilder sb = new StringBuilder();
             sb.append('/');
             for (int i = 1; i < arr1.length - 1; i++) {
-                sb.append(arr1[i]).append('/');
+                if (arr1[i].length() > 0) {
+                    sb.append(arr1[i]).append('/');
+                }
             }
-            GroovyReturnEntity groovyReturnEntity = StaticClasses.groovyLoad.newObject(sb.toString());
+            GroovyReturnEntity groovyReturnEntity = StaticClasses.groovyLoad.newObject(sb.toString(), request, response, SessionTool.getSession(request, response, StaticClasses.sessionUseTime));
+            if (groovyReturnEntity.entity.crossDomain) {
+                response.setHeader("Access-Control-Allow-Origin", "*");
+                response.setHeader("Access-Control-Allow-Headers", "*");
+                response.setHeader("Access-Control-Allow-Methods", "GET, POST");//, DELETE, PUT, OPTIONS
+                response.setHeader("Access-Control-Allow-Private-Network", "true");
+                response.setHeader("Access-Control-Allow-Credentials", "true");
+                response.setHeader("Access-Control-Max-Age", "1800");
+                response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+            }
             if (groovyReturnEntity == null) {
                 if (flowStaticLimit()) {
                     response.setStatus(403);
@@ -60,18 +103,6 @@ public class Controller extends HttpServlet {
                 response.setStatus(403);
                 return;
             }
-            if (groovyReturnEntity.entity.crossDomain) {
-                response.setHeader("Access-Control-Allow-Origin", "*");
-                response.setHeader("Access-Control-Allow-Headers", "*");
-                response.setHeader("Access-Control-Allow-Methods", "GET, POST");//, DELETE, PUT, OPTIONS
-                response.setHeader("Access-Control-Allow-Private-Network", "true");
-                response.setHeader("Access-Control-Allow-Credentials", "true");
-                response.setHeader("Access-Control-Max-Age", "180");
-                response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
-            }
-            StaticClasses.groovyLoad.setVariable(groovyReturnEntity, "request", request);
-            StaticClasses.groovyLoad.setVariable(groovyReturnEntity, "response", response);
-            StaticClasses.groovyLoad.setVariable(groovyReturnEntity, "session", SessionTool.getSession(request, response, StaticClasses.sessionUseTime));
             Object object = StaticClasses.groovyLoad.callWeb(groovyReturnEntity, arr1[arr1.length - 1], request.getParameterMap(), request);
             if (object != null) {
                 sendData(request, response, object.toString(), groovyReturnEntity);
@@ -107,7 +138,6 @@ public class Controller extends HttpServlet {
 
     }
 
-    //静态资源处理 仅仅是开发测试用  所以不加缓存 正式环境  请使用nginx
     private void staticFun(HttpServletRequest request, HttpServletResponse response, String url) {
         if (url.equals("/")) {
             url = "/index.html";

@@ -10,12 +10,16 @@ import gzb.tools.entity.GroovyLoadV2Entity;
 import gzb.tools.entity.GroovyReturnEntity;
 import gzb.tools.entity.UploadEntity;
 import gzb.tools.log.ColorEnum;
+import gzb.tools.session.Session;
+import gzb.tools.session.SessionTool;
 import gzb.tools.thread.GzbThread;
 import gzb.tools.thread.ThreadPool;
 import jline.internal.Log;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,10 +31,11 @@ public class GroovyLoadV4 {
     public static Map<String, String> fileName_webPath = new HashMap<>();
 
     static {
-        init();
         try {
+            init();
             Auto.autoLoadDaoImpl();
         } catch (Exception e) {
+            System.out.println("err");
             e.printStackTrace();
         }
 
@@ -46,36 +51,33 @@ public class GroovyLoadV4 {
                 loadFolder(folder, true);
             }
             if (StaticClasses.groovyLoadType.equals("file")) {
-                ThreadPool.start(new GzbThread() {
-                    @Override
-                    public void start() {
-                        while (true) {
-                            try {
-                                for (String folder : ss1) {
-                                    List<File> list = Tools.fileSub(folder, 2);
-                                    while (list.size() > 0) {
-                                        File file = list.remove(list.size() - 1);
-                                        if (file.getName().indexOf(".java") > -1 || file.getName().indexOf(".groovy") > -1) {
-                                            String webPath = fileName_webPath.get(file.getParent() + "/" + file.getName());
-                                            if (webPath == null) {
-                                                loadFile(file, true);
-                                            } else {
-                                                GroovyLoadV2Entity groovyLoadV2Entity = groovyClassMap.get(webPath);
-                                                if (groovyLoadV2Entity.updateTime != file.lastModified()) {
-                                                    loadFile(file, false);
-                                                }
+                ThreadPool.start(() -> {
+                    while (true) {
+                        try {
+                            for (String folder : ss1) {
+                                List<File> list = Tools.fileSub(folder, 2);
+                                while (list.size() > 0) {
+                                    File file = list.remove(list.size() - 1);
+                                    if (file.getName().indexOf(".java") > -1 || file.getName().indexOf(".groovy") > -1) {
+                                        String webPath = fileName_webPath.get(file.getParent() + "/" + file.getName());
+                                        if (webPath == null) {
+                                            loadFile(file, true);
+                                        } else {
+                                            GroovyLoadV2Entity groovyLoadV2Entity = groovyClassMap.get(webPath);
+                                            if (groovyLoadV2Entity.updateTime != file.lastModified()) {
+                                                loadFile(file, false);
                                             }
                                         }
                                     }
                                 }
-                                Thread.sleep(1000);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                                break;
                             }
+                            Thread.sleep(1000);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            break;
                         }
                     }
-                }, "GroovyLoadV4", true);
+                }, "GroovyLoadV4", true,1);
             } else if (StaticClasses.groovyLoadType.equals("http")) {
                 String urls = Tools.configGetString("gzb.groovy.load.urls", "");
                 String[] arr1 = urls.split(",");
@@ -251,6 +253,9 @@ public class GroovyLoadV4 {
     }
 
     public static GroovyReturnEntity newObject(String className) throws Exception {
+        return newObject(className,null,null,null);
+    }
+    public static GroovyReturnEntity newObject(String className, HttpServletRequest request, HttpServletResponse response, Session session) throws Exception {
         GroovyReturnEntity groovyReturnEntity = new GroovyReturnEntity();
         groovyReturnEntity.entity = groovyClassMap.get(className);
         if (groovyReturnEntity.entity == null) {
@@ -258,6 +263,25 @@ public class GroovyLoadV4 {
         }
         Object obj1=groovyReturnEntity.entity.aClass.getDeclaredConstructor().newInstance();
         Auto.getDaoImpl(groovyReturnEntity.entity.aClass,obj1);
+        Field[]fields=groovyReturnEntity.entity.aClass.getFields();
+        for (Field field : fields) {
+            if (request!=null && field.getType().getName().equals("gzb.tools.session.Session")){
+                field.setAccessible(true);
+                field.set(obj1,session);
+            }else if (request!=null && field.getType().getName().equals("javax.servlet.http.HttpServletRequest")){
+                field.setAccessible(true);
+                field.set(obj1,request);
+            }else if (response!=null && field.getType().getName().equals("javax.servlet.http.HttpServletResponse")){
+                field.setAccessible(true);
+                field.set(obj1,response);
+            }else{
+                Object obj2=Auto.mapClass.get(field.getType().getName());
+                if (obj2!= null){
+                    field.setAccessible(true);
+                    field.set(obj1,obj2);
+                }
+            }
+        }
         groovyReturnEntity.object = (GroovyObject) obj1;
         return groovyReturnEntity;
     }

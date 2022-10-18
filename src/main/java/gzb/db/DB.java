@@ -160,15 +160,17 @@ public class DB {
         }
     }
 
+    //获取一个不会重复的 long id 对标mysql bigint（生成规则与配置文件中denName有关，可支持1000台设备同时生成id 不重复）
     public final Long getOnlyIdDistributed() {
         return Tools.getOnlyIdDistributed();
     }
 
-    //返回一个不会重复的id redis 或者 map  自增
+    //返回一个不会重复的id redis 或者 map  自增  int类型id 傻逼才用
     public int getOnlyIdNumber(String mapName, String idName) {
         return Tools.getOnlyIdNumber(mapName, idName, this);
     }
 
+    //从数据获取一个最大id int类型id 傻逼才用
     public int getMaxId_db_private(String mapName, String idName) {
         String sql = "select " + idName + " from " + mapName + " order by " + idName + " desc limit 1";
         Connection conn = null;
@@ -225,101 +227,141 @@ public class DB {
 
     public void asyThread() {
         DB db = this;
-        ThreadPool.start(new GzbThread() {
-            @Override
-            public void start() {
-                Connection conn = null;
-                ResultSet rs = null;
-                PreparedStatement ps = null;
-                long t1 = 0l, t2 = 0l, t3 = 0l, t4 = 0l;
-                Object[] objs;
-                AsyEntity asyEntity;
-                Map<String, AsyEntity> map = null;
-                StringBuilder sb;
-                Map.Entry<String, AsyEntity> en;
-                while (true) {
+        int b = Runtime.getRuntime().availableProcessors();
+        ThreadPool.start(() -> {
+            Connection conn = null;
+            ResultSet rs = null;
+            PreparedStatement ps = null;
+            long t1 = 0l, t2 = 0l, t3 = 0l, t4 = 0l;
+            Object[] objs;
+            AsyEntity asyEntity;
+            Map<String, AsyEntity> map = null;
+            StringBuilder sb;
+            Map.Entry<String, AsyEntity> en;
+            while (true) {
+                try {
+                    boolean run1 = true;
+                    lockAsk.lock();
                     try {
-                        boolean run1 = true;
-                        lockAsk.lock();
-                        try {
-                            if (mapAskSql == null || mapAskSql.size() == 0) {
-                                run1 = false;
-                            } else {
-                                map = mapAskSql;
-                                mapAskSql = new HashMap<>();
-                            }
-                        } finally {
-                            lockAsk.unlock();
+                        if (mapAskSql == null || mapAskSql.size() == 0) {
+                            run1 = false;
+                        } else {
+                            map = mapAskSql;
+                            mapAskSql = new HashMap<>();
                         }
-                        if (!run1) {
-                            Thread.sleep(StaticClasses.asySleepHm);
-                            continue;
-                        }
-                        conn = db.getConnection();
-                        try {
-                            conn.setAutoCommit(false);
-                            for (Iterator<Map.Entry<String, AsyEntity>> it = map.entrySet().iterator(); it.hasNext(); ) {
-                                sb = new StringBuilder();
-                                en = it.next();
-                                ps = conn.prepareStatement(en.getKey());
-                                asyEntity = en.getValue();
-                                if (asyEntity == null || asyEntity.list.size() < 1) {
-                                    continue;
-                                }
-                                int num = 0;
-                                t1 = new Date().getTime();
-                                asyEntity.lock.lock();
-                                try {
-                                    for (Iterator<Object[]> iterator = asyEntity.list.iterator(); iterator.hasNext(); ) {
-                                        objs = iterator.next();
-                                        for (int j = 0; j < objs.length; j++) {
-                                            ps.setObject(j + 1, objs[j]);
-                                        }
-                                        ps.addBatch();
-                                        num++;
-                                        if (num % StaticClasses.asyBatchNum == 0 || !iterator.hasNext()) {
-                                            t2 = new Date().getTime();
-                                            t3 = new Date().getTime();
-                                            ps.executeBatch();
-                                            conn.commit();
-                                            t4 = new Date().getTime();
-                                            sb.append("组装耗时:")
-                                                    .append(t2 - t1)
-                                                    .append("毫秒")
-                                                    .append(",执行耗时:")
-                                                    .append(t4 - t3)
-                                                    .append("毫秒")
-                                                    .append("[")
-                                                    .append(num)
-                                                    .append("条]")
-                                                    .append(",SQL:")
-                                                    .append(en.getKey());
-                                            Log.sql(sb.toString());
-                                            sb.delete(0, sb.length());
-                                            num = 0;
-                                            t1 = new Date().getTime();
-                                        }
-                                    }
-                                } finally {
-                                    asyEntity.lock.unlock();
-                                }
+                    } finally {
+                        lockAsk.unlock();
+                    }
+                    if (!run1) {
+                        Thread.sleep(StaticClasses.asySleepHm);
+                        continue;
+                    }
+                    conn = db.getConnection();
+                    try {
+                        conn.setAutoCommit(false);
+                        for (Iterator<Map.Entry<String, AsyEntity>> it = map.entrySet().iterator(); it.hasNext(); ) {
+                            sb = new StringBuilder();
+                            en = it.next();
+                            ps = conn.prepareStatement(en.getKey());
+                            asyEntity = en.getValue();
+                            if (asyEntity == null || asyEntity.list.size() < 1) {
+                                continue;
                             }
-                        } finally {
+                            int num = 0;
+                            t1 = new Date().getTime();
+                            asyEntity.lock.lock();
                             try {
-                                conn.setAutoCommit(true);
-                                db.close(conn, rs, ps);
-                            } catch (SQLException e) {
-                                e.printStackTrace();
+                                for (Iterator<Object[]> iterator = asyEntity.list.iterator(); iterator.hasNext(); ) {
+                                    objs = iterator.next();
+                                    for (int j = 0; j < objs.length; j++) {
+                                        ps.setObject(j + 1, objs[j]);
+                                    }
+                                    ps.addBatch();
+                                    num++;
+                                    if (num % StaticClasses.asyBatchNum == 0 || !iterator.hasNext()) {
+                                        t2 = new Date().getTime();
+                                        t3 = new Date().getTime();
+                                        ps.executeBatch();
+                                        conn.commit();
+                                        t4 = new Date().getTime();
+                                        sb.append("组装耗时:")
+                                                .append(t2 - t1)
+                                                .append("毫秒")
+                                                .append(",执行耗时:")
+                                                .append(t4 - t3)
+                                                .append("毫秒")
+                                                .append("[")
+                                                .append(num)
+                                                .append("条]")
+                                                .append(",SQL:")
+                                                .append(en.getKey());
+                                        Log.sql(sb.toString());
+                                        sb.delete(0, sb.length());
+                                        num = 0;
+                                        t1 = new Date().getTime();
+                                    }
+                                }
+                            } finally {
+                                asyEntity.lock.unlock();
                             }
                         }
-                    } catch (Exception e) {
-                        Log.e(e, "DB.asy");
+                    } finally {
+                        try {
+                            conn.setAutoCommit(true);
+                            db.close(conn, rs, ps);
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } catch (Exception e) {
+                    Log.e(e, "DB.asy");
+                }
+            }
+        }, "DB.asy", false, b);
+
+    }
+
+    //没卵用 无视即可
+    public final String division(String mapName, int lv) {
+        Object[] arr = Tools.toArray("", "_yyyy", "_yyyy_MM", "_yyyy_MM_dd");
+        if (lv == 0 || lv > 3) {
+            return mapName;
+        }
+        String newMapName = null;
+        String newSql = "";
+        Connection conn = null;
+        ResultSet rs = null;
+        PreparedStatement ps = null;
+        try {
+            conn = getConnection();
+            for (int i = 0; i < 2; i++) {
+                newMapName = mapName;
+                newMapName += new DateTime().monthAdd(2 - (i + 1)).format(arr[lv].toString());
+                try {
+                    ps = conn.prepareStatement("show create table " + newMapName);
+                    rs = ps.executeQuery();
+                } catch (Exception e) {
+                    try {
+                        ps = conn.prepareStatement("show create table " + mapName);
+                        rs = ps.executeQuery();
+                        while (rs.next()) {
+                            newSql = rs.getString(2);
+                            newSql = newSql.replace("`" + mapName + "`", "`" + newMapName + "`");
+                            runSqlUpdateOrSaveOrDelete(newSql, null);
+                        }
+                    } catch (SQLException throwables) {
+                        throwables.printStackTrace();
                     }
                 }
             }
-        }, "DB.asy", false, (Runtime.getRuntime().availableProcessors()));
-    }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        } finally {
+            close(conn, rs, ps);
+        }
 
+        return newMapName;
+    }
 }
 
 class AsyEntity {
